@@ -54,7 +54,11 @@ let package = Package(
         ),
         .testTarget(
             name: "SwiftAPITests",
-            dependencies: ["SwiftAPICore"]
+            dependencies: [
+                "SwiftAPICore",
+                "SwiftAPIClient",
+                "SwiftAPIEndpoints",
+            ]
         ),
     ]
 )
