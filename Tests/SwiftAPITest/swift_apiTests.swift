@@ -142,6 +142,167 @@ extension MockAPIClient: APIClientKind {
     }
 }
 
+// MARK: - UserStreamEndpoint Tests
+
+@Test func testUserStreamEndpoint_Configuration() {
+    // Verify endpoint configuration
+    #expect(EP.User.UserStreamEndpoint.finalPath == "/user/xxx")
+    #expect(EP.User.UserStreamEndpoint.method == .GET)
+}
+
+@Test func testUserStreamEndpoint_Streaming() async throws {
+    // Create a custom MockStreamingClient for testing stream endpoints
+    final class MockStreamingClient: APIClientKind {
+        var baseURL: URL = URL(string: "https://api.example.com")!
+        var capturedEndpoint: Any?
+        var expectedChunks: [EP.User.UserStreamEndpoint.ResponseChunk] = []
+
+        func accessToken() -> String {
+            return "mock-token"
+        }
+
+        func makeStream<S>(request: URLRequest) -> S where S: AsyncSequence {
+            fatalError("Not implemented")
+        }
+
+        func data<E>(on endpoint: E) async throws -> E.ResponseContent where E: Endpoint {
+            fatalError("Not testing data endpoint")
+        }
+
+        func data<T>(_ path: String, method: EndpointMethod, decodingAs type: T.Type) async throws -> T where T: Decodable {
+            fatalError("Not implemented")
+        }
+
+        func stream<E, S>(on endpoint: E) async throws -> S where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
+            capturedEndpoint = endpoint
+
+            // Create a custom streaming sequence with our test chunks
+            let mockSequence = MockStreamSequence(chunks: expectedChunks) as! S
+            return mockSequence
+        }
+
+        // Custom mock stream sequence
+        final class MockStreamSequence<Element>: AsyncSequence {
+            let chunks: [Element]
+
+            init(chunks: [Element]) {
+                self.chunks = chunks
+            }
+
+            func makeAsyncIterator() -> AsyncIterator {
+                return AsyncIterator(chunks: chunks)
+            }
+
+            struct AsyncIterator: AsyncIteratorProtocol {
+                var chunks: [Element]
+                var index = 0
+
+                mutating func next() async -> Element? {
+                    guard index < chunks.count else { return nil }
+                    let chunk = chunks[index]
+                    index += 1
+                    return chunk
+                }
+            }
+        }
+    }
+
+    // Arrange
+    let mockClient = MockStreamingClient()
+    let expectedChunks = [
+        EP.User.UserStreamEndpoint.ResponseChunk(text: "Hello"),
+        EP.User.UserStreamEndpoint.ResponseChunk(text: "World"),
+        EP.User.UserStreamEndpoint.ResponseChunk(text: "!"),
+    ]
+    mockClient.expectedChunks = expectedChunks
+
+    let endpoint = EP.User.UserStreamEndpoint()
+
+    // Act
+    let stream: MockStreamingClient.MockStreamSequence<EP.User.UserStreamEndpoint.ResponseChunk> = try await mockClient.stream(on: endpoint)
+
+    // Assert
+    var receivedChunks: [EP.User.UserStreamEndpoint.ResponseChunk] = []
+    for await chunk in stream {
+        receivedChunks.append(chunk)
+    }
+
+    // Verify we received the expected chunks
+    #expect(receivedChunks.count == expectedChunks.count)
+    for (i, (received, expected)) in zip(receivedChunks, expectedChunks).enumerated() {
+        #expect(received.text == expected.text, "Chunk at index \(i) doesn't match: '\(received.text)' vs expected '\(expected.text)'")
+    }
+
+    // Verify correct endpoint was called
+    #expect(mockClient.capturedEndpoint is EP.User.UserStreamEndpoint)
+}
+
+@Test func testUserStreamEndpoint_Error() async throws {
+    // Create a custom MockStreamingClient that throws an error
+    final class ErrorStreamingClient: APIClientKind {
+        var baseURL: URL = URL(string: "https://api.example.com")!
+        var capturedEndpoint: Any?
+
+        // Need to define a MockStreamSequence for type annotations
+        final class MockStreamSequence<Element>: AsyncSequence {
+            typealias AsyncIterator = DummyIterator
+
+            struct DummyIterator: AsyncIteratorProtocol {
+                mutating func next() async -> Element? {
+                    return nil
+                }
+            }
+
+            func makeAsyncIterator() -> DummyIterator {
+                return DummyIterator()
+            }
+        }
+
+        func accessToken() -> String {
+            return "mock-token"
+        }
+
+        func makeStream<S>(request: URLRequest) -> S where S: AsyncSequence {
+            fatalError("Not implemented")
+        }
+
+        func data<E>(on endpoint: E) async throws -> E.ResponseContent where E: Endpoint {
+            fatalError("Not testing data endpoint")
+        }
+
+        func data<T>(_ path: String, method: EndpointMethod, decodingAs type: T.Type) async throws -> T where T: Decodable {
+            fatalError("Not implemented")
+        }
+
+        func stream<E, S>(on endpoint: E) async throws -> S where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
+            capturedEndpoint = endpoint
+            throw APIClientError.serverError(statusCode: 503)
+        }
+    }
+
+    // Arrange
+    let mockClient = ErrorStreamingClient()
+    let endpoint = EP.User.UserStreamEndpoint()
+
+    // Act & Assert
+    do {
+        let _: ErrorStreamingClient.MockStreamSequence<EP.User.UserStreamEndpoint.ResponseChunk> = try await mockClient.stream(on: endpoint)
+        throw TestError.expectationFailed("Expected error was not thrown")
+    } catch let error as TestError {
+        // Rethrow test errors
+        throw error
+    } catch let error as APIClientError {
+        if case .serverError(let statusCode) = error {
+            #expect(statusCode == 503)
+        } else {
+            throw TestError.expectationFailed("Unexpected error type: \(error)")
+        }
+    }
+
+    // Verify correct endpoint was called
+    #expect(mockClient.capturedEndpoint is EP.User.UserStreamEndpoint)
+}
+
 // MARK: - Test Helpers
 
 /// Custom error type for test assertions
