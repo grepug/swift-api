@@ -1,0 +1,65 @@
+//
+//  Endpoint.swift
+//  swift-api
+//
+//  Created by Kai Shao on 2025/4/17.
+//
+
+import Foundation
+
+public enum EndpointMethod: String, Sendable {
+    case GET
+    case POST
+    case PUT
+    case DELETE
+}
+
+public typealias CoSendable = Sendable & Codable & Hashable
+
+public struct EmptyCodable: CoSendable {}
+
+public protocol Endpoint: Sendable {
+    associatedtype RequestBody: CoSendable = EmptyCodable
+    associatedtype RequestQuery: CoSendable = EmptyCodable
+    associatedtype ResponseChunk: CoSendable = EmptyCodable
+    associatedtype ResponseContent: CoSendable = EmptyCodable
+
+    static var groupedPath: String { get }
+    static var path: String { get }
+    static var method: EndpointMethod { get }
+
+    var body: RequestBody { get }
+    var query: RequestQuery { get }
+}
+
+extension Endpoint {
+    public static var groupedPath: String { "" }
+    public static var method: EndpointMethod { .GET }
+
+    public static var finalPath: String {
+        let parentPath = self.groupedPath
+        let path = self.path
+
+        if parentPath.isEmpty {
+            return path
+        } else {
+            return "\(parentPath)\(path)"
+        }
+    }
+}
+
+extension Endpoint where RequestBody == EmptyCodable {
+    public var body: RequestBody { EmptyCodable() }
+}
+
+extension Endpoint where RequestQuery == EmptyCodable {
+    public var query: RequestQuery { EmptyCodable() }
+}
+
+extension Endpoint where ResponseChunk == EmptyCodable {
+    public var response: ResponseChunk { EmptyCodable() }
+}
+
+extension Endpoint where ResponseContent == EmptyCodable {
+    public var response: ResponseContent { EmptyCodable() }
+}

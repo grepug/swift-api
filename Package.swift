@@ -5,20 +5,56 @@ import PackageDescription
 
 let package = Package(
     name: "swift-api",
+    platforms: [
+        .macOS(.v14),
+        .iOS(.v17),
+    ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "swift-api",
-            targets: ["swift-api"]),
+            name: "SwiftAPI",
+            targets: [
+                "SwiftAPICore",
+                "SwiftAPIEndpoints",
+            ]),
+        .library(
+            name: "SwiftAPIClient",
+            targets: [
+                "SwiftAPICore",
+                "SwiftAPIClient",
+                "SwiftAPIEndpoints",
+            ]),
+        .library(
+            name: "SwiftAPICore",
+            targets: [
+                "SwiftAPICore"
+            ]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "swift-api"),
+            name: "SwiftAPICore",
+            dependencies: [],
+            path: "Sources/Core"
+        ),
+        .target(
+            name: "SwiftAPIClient",
+            dependencies: [
+                "SwiftAPICore"
+            ],
+            path: "Sources/Client"
+        ),
+        .target(
+            name: "SwiftAPIEndpoints",
+            dependencies: [
+                "SwiftAPICore"
+            ],
+            path: "Sources/Endpoints"
+        ),
         .testTarget(
-            name: "swift-apiTests",
-            dependencies: ["swift-api"]
+            name: "SwiftAPITests",
+            dependencies: ["SwiftAPICore"]
         ),
     ]
 )
