@@ -7,12 +7,25 @@
 
 import SwiftAPICore
 
-public protocol UserEndpoint: Endpoint {}
-
-extension UserEndpoint {
-    public static var groupedPath: String { "/user" }
-}
-
 public enum EP {
     public enum User {}
+}
+
+public protocol UserEndpointGroupProtocol: EndpointGroup {
+    associatedtype Route: RouteKind
+
+    typealias E1 = EP.User.FetchFreeFeature
+    func fetchUserRequestFreeFeature(request: Route.Request, EndpointType: E1.Type) async throws -> E1.ResponseContent
+}
+
+extension UserEndpointGroupProtocol {
+    public var groupedPath: String {
+        "/user"
+    }
+
+    @RouteBuilder
+    public var routes: Routes {
+        Route()
+            .block(EP.User.FetchFreeFeature.self, handler: fetchUserRequestFreeFeature)
+    }
 }

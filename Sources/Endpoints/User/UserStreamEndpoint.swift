@@ -1,7 +1,7 @@
 import SwiftAPICore
 
 extension EP.User {
-    struct UserStreamEndpoint: UserEndpoint {
+    struct UserStreamEndpoint: Endpoint {
         static public var path: String { "/xxx" }
         static public var method: EndpointMethod { .GET }
     }

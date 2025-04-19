@@ -24,7 +24,6 @@ public protocol Endpoint: Sendable {
     associatedtype ResponseChunk: CoSendable = EmptyCodable
     associatedtype ResponseContent: CoSendable = EmptyCodable
 
-    static var groupedPath: String { get }
     static var path: String { get }
     static var method: EndpointMethod { get }
 
@@ -33,19 +32,7 @@ public protocol Endpoint: Sendable {
 }
 
 extension Endpoint {
-    public static var groupedPath: String { "" }
     public static var method: EndpointMethod { .GET }
-
-    public static var finalPath: String {
-        let parentPath = self.groupedPath
-        let path = self.path
-
-        if parentPath.isEmpty {
-            return path
-        } else {
-            return "\(parentPath)\(path)"
-        }
-    }
 }
 
 extension Endpoint where RequestBody == EmptyCodable {
