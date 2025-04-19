@@ -41,7 +41,7 @@ public enum APIClientError: LocalizedError {
 
 extension APIClientKind {
     func urlRequest<E: Endpoint>(endpoint: E) throws -> URLRequest {
-        var request = URLRequest(url: baseURL.appending(component: E.finalPath))
+        var request = URLRequest(url: baseURL.appending(component: E.path))
 
         request.httpMethod = E.method.rawValue
         request.addValue("Content-Type", forHTTPHeaderField: "application/json")

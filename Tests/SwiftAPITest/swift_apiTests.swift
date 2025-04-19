@@ -75,7 +75,7 @@ extension MockAPIClient: APIClientKind {
     #expect(result.isAvailable == true)
 
     // Verify endpoint configuration
-    #expect(EP.User.FetchFreeFeature.finalPath == "/user/check-feature-availability")
+    #expect(EP.User.FetchFreeFeature.path == "/check-feature-availability")
     #expect(EP.User.FetchFreeFeature.method == .GET)
 
     // Verify captured endpoint query
@@ -146,7 +146,7 @@ extension MockAPIClient: APIClientKind {
 
 @Test func testUserStreamEndpoint_Configuration() {
     // Verify endpoint configuration
-    #expect(EP.User.UserStreamEndpoint.finalPath == "/user/xxx")
+    #expect(EP.User.UserStreamEndpoint.path == "/xxx")
     #expect(EP.User.UserStreamEndpoint.method == .GET)
 }
 
