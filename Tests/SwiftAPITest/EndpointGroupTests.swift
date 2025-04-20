@@ -1,8 +1,8 @@
 import Foundation
 import Testing
 
+@testable import ContextEndpoints
 @testable import SwiftAPICore
-@testable import SwiftAPIEndpoints
 
 // MARK: - Mock Route Implementation
 

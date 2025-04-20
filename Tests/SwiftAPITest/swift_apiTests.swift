@@ -1,9 +1,9 @@
 import Foundation
 import Testing
 
+@testable import ContextEndpoints
 @testable import SwiftAPIClient
 @testable import SwiftAPICore
-@testable import SwiftAPIEndpoints
 
 // MARK: - Mock Client for Testing
 

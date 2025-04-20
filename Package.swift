@@ -15,14 +15,14 @@ let package = Package(
             name: "SwiftAPI",
             targets: [
                 "SwiftAPICore",
-                "SwiftAPIEndpoints",
+                "ContextEndpoints",
             ]),
         .library(
             name: "SwiftAPIClient",
             targets: [
                 "SwiftAPICore",
                 "SwiftAPIClient",
-                "SwiftAPIEndpoints",
+                "ContextEndpoints",
             ]),
         .library(
             name: "SwiftAPICore",
@@ -46,7 +46,7 @@ let package = Package(
             path: "Sources/Client"
         ),
         .target(
-            name: "SwiftAPIEndpoints",
+            name: "ContextEndpoints",
             dependencies: [
                 "SwiftAPICore"
             ],
@@ -57,7 +57,7 @@ let package = Package(
             dependencies: [
                 "SwiftAPICore",
                 "SwiftAPIClient",
-                "SwiftAPIEndpoints",
+                "ContextEndpoints",
             ]
         ),
     ]
