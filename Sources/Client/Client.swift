@@ -11,10 +11,10 @@ import SwiftAPICore
 
 public protocol APIClientKind {
     func data<E: Endpoint>(on endpoint: E) async throws(APIClientError) -> E.ResponseContent
-    func stream<E: Endpoint, S: AsyncSequence>(on endpoint: E) async throws -> S where S.Element == E.ResponseChunk
+    func stream<E: Endpoint, S: AsyncSequence>(on endpoint: E) -> S where S.Element == E.ResponseChunk
     func data<T: Decodable>(_ path: String, method: EndpointMethod, decodingAs type: T.Type) async throws(APIClientError) -> T
 
-    func accessToken() throws -> String
+    func accessToken() -> String
     func makeStream<S>(request: URLRequest) -> S where S: AsyncSequence
 
     var baseURL: URL { get }
@@ -24,19 +24,19 @@ public enum APIClientError: Throwable, Catching {
     case invalidResponse
     case serverError(statusCode: Int, message: String)
     case decodingError(message: String)
-    case unknownError
+    case invalidAccessToken
     case caught(_ error: Error)
 
     public var userFriendlyMessage: String {
         switch self {
         case .invalidResponse:
             "Invalid response from server."
+        case .invalidAccessToken:
+            "Invalid access token."
         case .serverError(let statusCode, let message):
             "Server error with status code: \(statusCode), message: \(message)"
         case .decodingError(let message):
             "Failed to decode response: \(message)"
-        case .unknownError:
-            "An unknown error occurred."
         case .caught(let error):
             ErrorKit.userFriendlyMessage(for: error)
         }
@@ -44,27 +44,23 @@ public enum APIClientError: Throwable, Catching {
 }
 
 extension APIClientKind {
-    func urlRequest(path: String, method: EndpointMethod) throws -> URLRequest {
-        do {
-            var request = URLRequest(url: baseURL.appending(component: path))
+    func urlRequest(path: String, method: EndpointMethod) -> URLRequest {
+        var request = URLRequest(url: baseURL.appending(component: path))
 
-            request.httpMethod = method.rawValue
-            request.addValue("Content-Type", forHTTPHeaderField: "application/json")
-            request.addValue("Accept", forHTTPHeaderField: "application/json")
-            request.addValue("Authorization", forHTTPHeaderField: "Bearer \(try accessToken())")
+        request.httpMethod = method.rawValue
+        request.addValue("Content-Type", forHTTPHeaderField: "application/json")
+        request.addValue("Accept", forHTTPHeaderField: "application/json")
+        request.addValue("Authorization", forHTTPHeaderField: "Bearer \(accessToken())")
 
-            return request
-        } catch {
-            throw APIClientError.caught(error)
-        }
+        return request
     }
 
     public func data<E>(on endpoint: E) async throws(APIClientError) -> E.ResponseContent where E: Endpoint {
         try await data(E.path, method: E.method, decodingAs: E.ResponseContent.self)
     }
 
-    public func stream<E, S>(on endpoint: E) async throws -> S where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
-        let stream: S = makeStream(request: try urlRequest(path: E.path, method: E.method))
+    public func stream<E, S>(on endpoint: E) -> S where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
+        let stream: S = makeStream(request: urlRequest(path: E.path, method: E.method))
         return stream
     }
 
@@ -72,7 +68,7 @@ extension APIClientKind {
         let data: Data
 
         do {
-            let request = try urlRequest(path: path, method: method)
+            let request = urlRequest(path: path, method: method)
             let (_data, response) = try await URLSession.shared.throwableData(for: request)
 
             data = _data
