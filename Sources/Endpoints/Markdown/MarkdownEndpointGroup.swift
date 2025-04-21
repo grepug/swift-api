@@ -37,18 +37,27 @@ extension EP {
 
 extension EP.Markdown.CreateMarkdown {
     public struct RequestBody: CoSendable {
-        public var text: String
+        public enum Source: String, CoSendable {
+            case epub
+            case pdf
+            case web
+            case manualInput
+        }
 
-        public init(text: String) {
-            self.text = text
+        public var texts: [String]
+        public var source: Source
+
+        public init(texts: [String], source: Source) {
+            self.texts = texts
+            self.source = source
         }
     }
 
     public struct ResponseChunk: CoSendable {
-        public var text: String
+        public var markdown: String
 
-        public init(text: String) {
-            self.text = text
+        public init(markdown: String) {
+            self.markdown = markdown
         }
     }
 }

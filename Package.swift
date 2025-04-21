@@ -30,25 +30,32 @@ let package = Package(
                 "SwiftAPICore"
             ]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/FlineDev/ErrorKit.git", from: "1.0.0")
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SwiftAPICore",
-            dependencies: [],
+            dependencies: [
+                .product(name: "ErrorKit", package: "ErrorKit")
+            ],
             path: "Sources/Core"
         ),
         .target(
             name: "SwiftAPIClient",
             dependencies: [
-                "SwiftAPICore"
+                "SwiftAPICore",
+                .product(name: "ErrorKit", package: "ErrorKit"),
             ],
             path: "Sources/Client"
         ),
         .target(
             name: "ContextEndpoints",
             dependencies: [
-                "SwiftAPICore"
+                "SwiftAPICore",
+                .product(name: "ErrorKit", package: "ErrorKit"),
             ],
             path: "Sources/Endpoints"
         ),
