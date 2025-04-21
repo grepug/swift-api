@@ -25,11 +25,11 @@ extension MockAPIClient: APIClientKind {
         fatalError("Streaming not implemented in mock")
     }
 
-    func data<E>(on endpoint: E) async throws -> E.ResponseContent where E: Endpoint {
+    func data<E>(on endpoint: E) async throws(APIClientError) -> E.ResponseContent where E: Endpoint {
         self.capturedEndpoint = endpoint
 
         if !shouldSucceed {
-            throw APIClientError.serverError(statusCode: 500)
+            throw APIClientError.serverError(statusCode: 500, message: "Mock server error")
         }
 
         guard let response = mockResponse as? E.ResponseContent else {
@@ -43,9 +43,9 @@ extension MockAPIClient: APIClientKind {
         fatalError("Streaming not implemented in mock")
     }
 
-    func data<T>(_ path: String, method: EndpointMethod, decodingAs type: T.Type) async throws -> T where T: Decodable {
+    func data<T>(_ path: String, method: EndpointMethod, decodingAs type: T.Type) async throws(APIClientError) -> T where T: Decodable {
         if !shouldSucceed {
-            throw APIClientError.serverError(statusCode: 500)
+            throw APIClientError.serverError(statusCode: 500, message: "Mock server error")
         }
 
         guard let response = mockResponse as? T else {
@@ -102,7 +102,7 @@ extension MockAPIClient: APIClientKind {
         // Rethrow test errors
         throw error
     } catch let error as APIClientError {
-        if case .serverError(let statusCode) = error {
+        if case let .serverError(statusCode, _) = error {
             #expect(statusCode == 500)
         } else {
             // Use XCTFail equivalent for Testing framework
@@ -276,7 +276,7 @@ extension MockAPIClient: APIClientKind {
 
         func stream<E, S>(on endpoint: E) async throws -> S where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
             capturedEndpoint = endpoint
-            throw APIClientError.serverError(statusCode: 503)
+            throw APIClientError.serverError(statusCode: 503, message: "Streaming error")
         }
     }
 
@@ -292,7 +292,7 @@ extension MockAPIClient: APIClientKind {
         // Rethrow test errors
         throw error
     } catch let error as APIClientError {
-        if case .serverError(let statusCode) = error {
+        if case let .serverError(statusCode, _) = error {
             #expect(statusCode == 503)
         } else {
             throw TestError.expectationFailed("Unexpected error type: \(error)")
