@@ -12,6 +12,13 @@ public enum EndpointMethod: String, Sendable {
     case POST
     case PUT
     case DELETE
+
+    public var hasBody: Bool {
+        switch self {
+        case .POST, .PUT: true
+        default: false
+        }
+    }
 }
 
 public typealias CoSendable = Sendable & Codable & Hashable
@@ -49,4 +56,13 @@ extension Endpoint where ResponseChunk == EmptyCodable {
 
 extension Endpoint where ResponseContent == EmptyCodable {
     public var response: ResponseContent { EmptyCodable() }
+}
+
+public struct EndpointResponseContainer<T: Codable> {
+    var result: T
+}
+
+public struct EndpointResponseChunkContainer<T: Codable> {
+    var chunk: T
+    var errorCode: Int?
 }
