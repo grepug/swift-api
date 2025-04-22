@@ -31,7 +31,8 @@ let package = Package(
             ]),
     ],
     dependencies: [
-        .package(url: "https://github.com/FlineDev/ErrorKit.git", from: "1.0.0")
+        .package(url: "https://github.com/FlineDev/ErrorKit.git", from: "1.0.0"),
+        .package(url: "https://github.com/grepug/concurrency-utils.git", branch: "main"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -48,6 +49,7 @@ let package = Package(
             dependencies: [
                 "SwiftAPICore",
                 .product(name: "ErrorKit", package: "ErrorKit"),
+                .product(name: "ConcurrencyUtils", package: "concurrency-utils"),
             ],
             path: "Sources/Client"
         ),

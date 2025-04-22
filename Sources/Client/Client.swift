@@ -5,17 +5,18 @@
 //  Created by Kai Shao on 2025/4/17.
 //
 
+import ConcurrencyUtils
 import ErrorKit
 import Foundation
 import SwiftAPICore
 
 public protocol APIClientKind {
     func data<E: Endpoint>(on endpoint: E) async throws(APIClientError) -> E.ResponseContent
-    func stream<E: Endpoint, S: AsyncSequence>(on endpoint: E) -> S where S.Element == E.ResponseChunk
+    func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.ResponseChunk, Error> where E: Endpoint
     func data<T: Decodable>(_ path: String, method: EndpointMethod, decodingAs type: T.Type) async throws(APIClientError) -> T
 
     func accessToken() -> String
-    func makeStream<S>(request: URLRequest) -> S where S: AsyncSequence
+    func makeStream(request: URLRequest) -> AsyncThrowingStream<String, Error>
 
     var baseURL: URL { get }
 }
@@ -59,9 +60,16 @@ extension APIClientKind {
         try await data(E.path, method: E.method, decodingAs: E.ResponseContent.self)
     }
 
-    public func stream<E, S>(on endpoint: E) -> S where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
-        let stream: S = makeStream(request: urlRequest(path: E.path, method: E.method))
-        return stream
+    public func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.ResponseChunk, Error> where E: Endpoint {
+        let stream = makeStream(request: urlRequest(path: E.path, method: E.method))
+
+        return .makeCancellable { continuation in
+            for try await string in stream {
+                let data = string.data(using: .utf8) ?? Data()
+                let chunk = try JSONDecoder().decode(E.ResponseChunk.self, from: data)
+                continuation.yield(chunk)
+            }
+        }
     }
 
     public func data<T>(_ path: String, method: EndpointMethod, decodingAs type: T.Type) async throws(APIClientError) -> T where T: Decodable {
