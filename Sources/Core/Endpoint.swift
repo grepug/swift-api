@@ -59,10 +59,19 @@ extension Endpoint where ResponseContent == EmptyCodable {
 }
 
 public struct EndpointResponseContainer<T: Codable> {
-    var result: T
+    public var result: T
+
+    public init(result: T) {
+        self.result = result
+    }
 }
 
 public struct EndpointResponseChunkContainer<T: Codable> {
-    var chunk: T
-    var errorCode: Int?
+    public var chunk: T
+    public var errorCode: Int?
+
+    public init(chunk: T, errorCode: Int? = nil) {
+        self.chunk = chunk
+        self.errorCode = errorCode
+    }
 }
