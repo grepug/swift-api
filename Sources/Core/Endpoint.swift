@@ -58,7 +58,7 @@ extension Endpoint where ResponseContent == EmptyCodable {
     public var response: ResponseContent { EmptyCodable() }
 }
 
-public struct EndpointResponseContainer<T: Codable> {
+public struct EndpointResponseContainer<T: Codable>: Codable {
     public var result: T
 
     public init(result: T) {
@@ -66,7 +66,7 @@ public struct EndpointResponseContainer<T: Codable> {
     }
 }
 
-public struct EndpointResponseChunkContainer<T: Codable> {
+public struct EndpointResponseChunkContainer<T: Codable>: Codable {
     public var chunk: T
     public var errorCode: Int?
 
