@@ -14,7 +14,7 @@ public protocol APIClientKind {
     func data<E: Endpoint>(on endpoint: E) async throws(APIClientError) -> E.ResponseContent
     func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.ResponseChunk, Error> where E: Endpoint
     func data<T, Body, Query>(_ path: String, method: EndpointMethod, query: Query, body: Body, decodingAs type: T.Type) async throws(APIClientError) -> T
-    where T: Decodable, Body: Encodable, Query: Encodable
+    where T: Codable, Body: Encodable, Query: Encodable
 
     func accessToken() -> String
     func makeStream(request: URLRequest) -> AsyncThrowingStream<String, Error>
@@ -80,14 +80,20 @@ extension APIClientKind {
         return .makeCancellable { continuation in
             for try await string in stream {
                 let data = string.data(using: .utf8) ?? Data()
-                let chunk = try JSONDecoder().decode(E.ResponseChunk.self, from: data)
-                continuation.yield(chunk)
+                let container = try JSONDecoder().decode(EndpointResponseChunkContainer<E.ResponseChunk>.self, from: data)
+
+                guard container.errorCode == nil else {
+                    continuation.finish(throwing: APIClientError.serverError(statusCode: container.errorCode!, message: ""))
+                    return
+                }
+
+                continuation.yield(container.chunk)
             }
         }
     }
 
     public func data<T, Body, Query>(_ path: String, method: EndpointMethod, query: Query, body: Body, decodingAs type: T.Type) async throws(APIClientError) -> T
-    where T: Decodable, Body: Encodable, Query: Encodable {
+    where T: Codable, Body: Encodable, Query: Encodable {
         let data: Data
 
         do {
@@ -111,7 +117,8 @@ extension APIClientKind {
         }
 
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            let container = try JSONDecoder().decode(EndpointResponseContainer<T>.self, from: data)
+            return container.result
         } catch {
             throw APIClientError.decodingError(message: ErrorKit.errorChainDescription(for: error))
         }
