@@ -2,7 +2,7 @@ import SwiftAPICore
 
 extension EP.User {
     public struct FetchFreeFeature: Endpoint {
-        public static var path: String { "/check-feature-availability" }
+        public static var path: String { "/user/check-feature-availability" }
         public var query: RequestQuery
 
         public init(query: RequestQuery) {

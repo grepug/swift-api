@@ -19,10 +19,6 @@ public protocol UserEndpointGroupProtocol: EndpointGroup {
 }
 
 extension UserEndpointGroupProtocol {
-    public var groupedPath: String {
-        "/user"
-    }
-
     @RouteBuilder
     public var routes: Routes {
         Route()

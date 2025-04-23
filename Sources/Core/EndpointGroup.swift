@@ -4,8 +4,6 @@ public protocol EndpointGroup: Sendable {
 
     @RouteBuilder
     var additionalRoutes: Routes { get }
-
-    var groupedPath: String { get }
 }
 
 extension EndpointGroup {
