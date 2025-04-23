@@ -33,14 +33,10 @@ extension EP {
 
 extension EP.System.AppConfig {
     public struct RequestQuery: CoSendable {
-        public var appVersion: String
         public var appBuild: String
-        public var platform: String
 
-        public init(appVersion: String, appBuild: String, platform: String) {
-            self.appVersion = appVersion
+        public init(appBuild: String) {
             self.appBuild = appBuild
-            self.platform = platform
         }
     }
 
