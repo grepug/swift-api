@@ -1,3 +1,4 @@
+import Foundation
 import SwiftAPICore
 
 extension EP.User {
@@ -12,10 +13,29 @@ extension EP.User {
 }
 
 extension EP.User.FetchFreeFeature {
-    public enum Feature: String, CoSendable {
-        case someFeature
-        case anotherFeature
-        case yetAnotherFeature
+    public enum Feature: String, CoSendable, CaseIterable {
+        case importFulltext
+        case addContextSegment
+        case contextTranslation
+        case contextStudyNote
+        case segmentStudyNote
+
+        public var countLimit: Int {
+            switch self {
+            case .importFulltext: 5
+            case .addContextSegment: 100
+            case .contextTranslation: 3
+            case .contextStudyNote: 3
+            case .segmentStudyNote: 10
+            }
+        }
+    }
+
+    public struct FeatureLimitInfo: CoSendable {
+        public var featureCanUse: [Feature: Bool] = [:]
+        public var featureNextAvailableDate: [Feature: Date?] = [:]
+
+        public init() {}
     }
 
     public struct RequestQuery: CoSendable {
@@ -27,10 +47,10 @@ extension EP.User.FetchFreeFeature {
     }
 
     public struct ResponseContent: CoSendable {
-        public let isAvailable: Bool
+        public let info: FeatureLimitInfo
 
-        public init(isAvailable: Bool) {
-            self.isAvailable = isAvailable
+        public init(info: FeatureLimitInfo) {
+            self.info = info
         }
     }
 }
