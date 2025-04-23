@@ -47,15 +47,17 @@ public enum APIClientError: Throwable, Catching {
 
 extension APIClientKind {
     func urlRequest(path: String, method: EndpointMethod, query: [URLQueryItem], body: Data) -> URLRequest {
-        let url =
-            baseURL
-            .appendingPathComponent("user")
-            .appendingPathComponent(path)
-            .appending(queryItems: query)
+        let pathComponent = path.split(separator: "/", omittingEmptySubsequences: true)
+
+        var url = baseURL
+
+        for component in pathComponent {
+            url.appendPathComponent(String(component))
+        }
+
+        url.append(queryItems: query)
 
         var request = URLRequest(url: url)
-
-        print("Creating request for URL: \(url)")
 
         request.httpMethod = method.rawValue
         request.addValue("Bearer \(accessToken())", forHTTPHeaderField: "Authorization")
