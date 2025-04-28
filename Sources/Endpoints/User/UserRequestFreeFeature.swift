@@ -29,6 +29,16 @@ extension EP.User.FetchFreeFeature {
             case .segmentStudyNote: 10
             }
         }
+        
+        public var localizedName: String {
+            switch self {
+            case .importFulltext: "导入文章"
+            case .addContextSegment: "添加生词"
+            case .contextTranslation: "翻译"
+            case .contextStudyNote: "语境分析"
+            case .segmentStudyNote: "单词学习"
+            }
+        }
     }
 
     public struct FeatureLimitInfo: CoSendable {
@@ -39,10 +49,21 @@ extension EP.User.FetchFreeFeature {
     }
 
     public struct RequestQuery: CoSendable {
-        public let feature: Feature
+        public enum StringBool: String, CoSendable {
+            case `true`
+            case `false`
 
-        public init(feature: Feature) {
+            public var bool: Bool {
+                self == .true
+            }
+        }
+
+        public let feature: Feature
+        public let useOne: StringBool
+
+        public init(feature: Feature, useOne: Bool) {
             self.feature = feature
+            self.useOne = useOne ? .true : .false
         }
     }
 
