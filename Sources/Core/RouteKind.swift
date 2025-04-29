@@ -13,6 +13,7 @@ public protocol RouteKind: Sendable {
 
     var path: String { get set }
     var method: EndpointMethod { get set }
+    var timeout: TimeInterval { get }
 
     var handler: (Request) async throws -> Response { get set }
 
@@ -20,6 +21,10 @@ public protocol RouteKind: Sendable {
 }
 
 extension RouteKind {
+    public var timeout: TimeInterval {
+        60
+    }
+
     public func block<E>(_ endpoint: E.Type, handler: @escaping @Sendable (_ req: Request, _ E: E.Type) async throws -> E.ResponseContent) -> Self where E: Endpoint, E.ResponseChunk == EmptyCodable {
         var me = self
         me.path = endpoint.path

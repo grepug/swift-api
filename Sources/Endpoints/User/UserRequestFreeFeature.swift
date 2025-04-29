@@ -29,7 +29,7 @@ extension EP.User.FetchFreeFeature {
             case .segmentStudyNote: 10
             }
         }
-        
+
         public var localizedName: String {
             switch self {
             case .importFulltext: "导入文章"

@@ -9,10 +9,6 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
 }
 
 extension MarkdownEndpointGroupProtocol {
-    public var groupedPath: String {
-        "/markdown"
-    }
-
     @RouteBuilder
     public var routes: Routes {
         Route()
@@ -25,7 +21,7 @@ extension EP {
         public struct CreateMarkdown: Endpoint {
             public var body: RequestBody
 
-            static public var path: String { "/create" }
+            static public var path: String { "/markdown/create" }
             static public var method: EndpointMethod { .POST }
 
             public init(body: RequestBody) {
@@ -46,10 +42,12 @@ extension EP.Markdown.CreateMarkdown {
 
         public var texts: [String]
         public var source: Source
+        public var isEnglish: Bool
 
-        public init(texts: [String], source: Source) {
+        public init(texts: [String], source: Source, isEnglish: Bool) {
             self.texts = texts
             self.source = source
+            self.isEnglish = isEnglish
         }
     }
 
