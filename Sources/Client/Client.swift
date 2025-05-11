@@ -10,6 +10,7 @@ import ErrorKit
 import Foundation
 import SwiftAPICore
 
+@MainActor
 public protocol APIClientKind {
     func data<E: Endpoint>(on endpoint: E) async throws(APIClientError) -> E.ResponseContent
     func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.ResponseChunk, Error> where E: Endpoint
