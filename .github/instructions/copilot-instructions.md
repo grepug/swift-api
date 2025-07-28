@@ -96,6 +96,7 @@ public var routes: Routes {
 - Mock clients implement `APIClientKind` protocol
 - Use `@testable import` for ContextEndpoints, SwiftAPIClient, SwiftAPICore
 - Test both endpoint configuration and handler logic separately
+- Always use `swift test` directly in terminal rather than the runTests tool
 
 ### Build Commands
 

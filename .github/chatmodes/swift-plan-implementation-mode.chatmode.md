@@ -1,6 +1,6 @@
 ---
 description: "Implements development plans following exact specifications from /plans folder"
-tools: ['changes', 'codebase', 'editFiles', 'findTestFiles', 'search', 'createFile', 'runTests', 'runInTerminal']
+tools: ['changes', 'codebase', 'editFiles', 'findTestFiles', 'runCommands', 'search', 'terminalLastCommand', 'terminalSelection', 'markitdown']
 ---
 
 # Swift Plan Implementation Mode
