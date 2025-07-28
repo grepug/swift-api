@@ -42,8 +42,7 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
     /// - Returns: An async sequence of markdown chunks
     /// - Throws: Processing or network errors
     func createMarkdown(
-        request: Route.Request,
-        EndpointType: E1.Type,
+        context: RequestContext<Route.Request, E1.RequestQuery, E1.RequestBody>,
     ) async throws -> S1
 
     /// Creates markdown from text using block response (V2)
@@ -54,9 +53,8 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
     /// - Returns: Complete markdown response content
     /// - Throws: Processing or network errors
     func createMarkdownV2(
-        request: Route.Request,
-        EndpointType: E2.Type,
-    ) async throws -> EP.Markdown.CreateMarkdownV2.ResponseContent
+        context: RequestContext<Route.Request, E2.RequestQuery, E2.RequestBody>,
+    ) async throws -> E2.ResponseContent
 }
 
 // MARK: - Default Implementation
@@ -64,6 +62,10 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
 extension MarkdownEndpointGroupProtocol {
 
     /// Route configuration for markdown endpoints
+    ///
+    /// @Sendable (RequestContext<Self.Route.Request, EP.Markdown.CreateMarkdown.RequestQuery, EP.Markdown.CreateMarkdown.RequestBody>, EP.Markdown.CreateMarkdown.Type) async throws -> Self.S1
+    /// @Sendable (RequestContext<Self.Route.Request, EmptyCodable, EP.Markdown.CreateMarkdown.RequestBody>, EP.Markdown.CreateMarkdown.Type) async throws -> Self.S1
+    /// @Sendable (RequestContext<Self.Route.Request, EP.Markdown.CreateMarkdown.RequestQuery, EP.Markdown.CreateMarkdown.RequestBody>) async throws -> Self.S1
     @RouteBuilder
     public var routes: Routes {
         Route()

@@ -4,7 +4,9 @@ public protocol SystemEndpointGroupProtocol: EndpointGroup {
     associatedtype Route: RouteKind
 
     typealias E1 = EP.System.AppConfig
-    func fetchAppConfig(request: Route.Request, EndpointType: E1.Type) async throws -> E1.ResponseContent
+    func fetchAppConfig(
+        context: RequestContext<Route.Request, E1.RequestQuery, E1.RequestBody>
+    ) async throws -> E1.ResponseContent
 }
 
 extension SystemEndpointGroupProtocol {

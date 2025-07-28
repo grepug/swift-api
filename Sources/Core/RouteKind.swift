@@ -20,32 +20,53 @@ public protocol RouteKind: Sendable {
     init()
 }
 
+public struct RequestContext<Request: RouteRequestKind, Query: Sendable, Body: Sendable>: Sendable {
+    public let request: Request
+    public let query: Query
+    public let body: Body
+}
+
 extension RouteKind {
     public var timeout: TimeInterval {
         60
     }
 
-    public func block<E>(_ endpoint: E.Type, handler: @escaping @Sendable (_ req: Request, _ E: E.Type) async throws -> E.ResponseContent) -> Self where E: Endpoint, E.ResponseChunk == EmptyCodable {
+    public func block<E>(
+        _ endpoint: E.Type,
+        handler: @escaping @Sendable (_ context: RequestContext<Request, E.RequestQuery, E.RequestBody>) async throws -> E.ResponseContent
+    ) -> Self where E: Endpoint, E.ResponseChunk == EmptyCodable {
         var me = self
-        me.path = endpoint.path
-        me.method = endpoint.method
+        me.path = E.path
+        me.method = E.method
 
         me.handler = { req in
-            let result = try await handler(req, endpoint)
+            let context = RequestContext(
+                request: req,
+                query: try req.decodedRequestQuery(E.RequestQuery.self),
+                body: try req.decodedRequestBody(E.RequestBody.self),
+            )
+            let result = try await handler(context)
             return Response.fromCodable(result)
         }
 
         return me
     }
 
-    public func stream<E, S>(_ endpoint: E.Type, handler: @escaping @Sendable (_ req: Request, _ E: E.Type) async throws -> S) -> Self
-    where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
+    public func stream<E, S>(
+        _ endpoint: E.Type,
+        handler: @escaping @Sendable (_ context: RequestContext<Request, E.RequestQuery, E.RequestBody>) async throws -> S
+    ) -> Self where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
         var me = self
-        me.path = endpoint.path
-        me.method = endpoint.method
+        me.path = E.path
+        me.method = E.method
 
         me.handler = { req in
-            let result = try await handler(req, endpoint)
+            let context = RequestContext(
+                request: req,
+                query: try req.decodedRequestQuery(E.RequestQuery.self),
+                body: try req.decodedRequestBody(E.RequestBody.self),
+            )
+            let result = try await handler(context)
             return Response.fromStream(result)
         }
 
@@ -53,7 +74,7 @@ extension RouteKind {
     }
 }
 
-public protocol RouteRequestKind {
+public protocol RouteRequestKind: Sendable {
     var userId: UUID { get throws }
 
     func decodedRequestBody<T: CoSendable>(_ type: T.Type) throws -> T

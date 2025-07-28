@@ -1,5 +1,5 @@
 {
-  "originHash" : "f284bf155286612d4fd63a1a910d2d8ac9577f10a3c3bd616d9a99f229c30970",
+  "originHash" : "c0754db2c8f7ef7f7a22824b1287dadff58adc11aa7abec903a1d603df980012",
   "pins" : [
     {
       "identity" : "concurrency-utils",
@@ -8,6 +8,15 @@
       "state" : {
         "branch" : "main",
         "revision" : "a112259ae5e8376045c8e0913574c44180d829cc"
+      }
+    },
+    {
+      "identity" : "context-shared-models",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/grepug/context-shared-models.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "96d1f93614a63cf7609cc581ac180ed089ec932b"
       }
     },
     {
