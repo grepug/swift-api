@@ -18,19 +18,31 @@ This mode focuses on creating comprehensive testing plans for Swift libraries us
 
 **Focus Areas:**
 
-1. **Test Architecture Planning** - Organize tests into logical suites and categories
-2. **Coverage Strategy** - Identify critical paths, edge cases, and integration points
+1. **Test Architecture Planning** - Organize tests into logical suites with runtime behavior focus
+2. **Coverage Strategy** - Identify critical runtime paths, data flows, and integration points (avoid compiler-guaranteed behavior)
 3. **Swift Testing Patterns** - Leverage `@Test`, `@Suite`, parameterized tests, and async testing
-4. **Performance Testing** - Plan for performance benchmarks and regression testing
-5. **CI/CD Integration** - Design tests for automated pipeline execution
+4. **Mock Type Design** - Create concrete mock implementations that conform to tested protocols
+5. **Performance Testing** - Plan for performance benchmarks and regression testing
+6. **CI/CD Integration** - Design tests for automated pipeline execution
 
 **Key Principles:**
 
 - Use Swift Testing framework exclusively (no XCTest references)
+- Focus on runtime behavior, not compile-time guarantees
+- Design comprehensive mock types that implement tested protocols
 - Plan for both unit and integration testing levels
 - Consider async/await patterns and concurrency testing
 - Design for test maintainability and clear failure diagnostics
 - Include setup/teardown strategies for complex test scenarios
+- Use comments for implementation details rather than complete code
+
+**Testing Strategy Guidelines:**
+
+- **Skip Compiler-Guaranteed Tests**: Don't test type constraints, protocol conformance, or generic constraints that Swift verifies at compile time
+- **Focus on Runtime Behavior**: Test actual method execution, data serialization, state changes, and integration workflows
+- **Mock Implementation First**: Design mock types that conform to protocols before planning test scenarios
+- **Real Data Usage**: Use actual JSON encoding/decoding, real async streams, and concrete data structures in tests
+- **Integration Testing**: Test cross-component interactions and end-to-end workflows
 
 **Swift Testing Framework Specifics:**
 
@@ -70,37 +82,69 @@ Each plan should include:
 **Example Test Structure:**
 
 ```swift
-@Suite("API Client Tests")
-struct APIClientTests {
+// MARK: - Mock Types for Testing
 
-    @Suite("Authentication")
-    struct AuthenticationTests {
-        @Test("Valid token authentication")
-        func validTokenAuthentication() async throws {
-            // Test implementation
+struct MockEndpoint: Endpoint {
+    static var path: String { "/mock/endpoint" }
+    // Mock implementation details...
+}
+
+struct MockRequest: RouteRequestKind {
+    // Mock implementation for testing data flow...
+}
+
+// MARK: - [Plan Phase Name] Tests
+
+@Suite("[Test Suite Name from Plan]")
+struct [TestStructName] {
+    
+    @Suite("[Subsection Name]")
+    struct [SubsectionTests] {
+        
+        @Test("[Specific test description from plan]")
+        func [testMethodName]() async throws {
+            // Create mock data and test runtime behavior
+            // Verify actual method execution and state changes
+            // Test data serialization/deserialization
+            #expect(actualRuntimeBehavior)
         }
-
-        @Test("Invalid token handling", arguments: ["", "invalid", "expired"])
-        func invalidTokenHandling(token: String) async throws {
-            // Parameterized test implementation
-        }
-    }
-
-    @Suite("Endpoint Integration")
-    struct EndpointIntegrationTests {
-        @Test("Markdown endpoint streaming")
-        func markdownEndpointStreaming() async throws {
-            // Integration test implementation
+        
+        @Test("[Parameterized test name]", arguments: [
+            // Real test data scenarios from plan
+        ])
+        func [parameterizedTest](argument: Type) throws {
+            // Test with real data variations
+            // Focus on runtime behavior differences
         }
     }
 }
 ```
 
+**Plan Content Guidelines:**
+
+- **Mock Type Definitions**: Include comprehensive mock type specifications
+- **Test Suite Structure**: Define hierarchical organization with `@Suite`
+- **Runtime Behavior Focus**: Specify what runtime behaviors to test
+- **Integration Scenarios**: Define cross-component interaction tests
+- **Performance Criteria**: Specify measurable performance targets
+- **Implementation Comments**: Use comments instead of complete code implementations
+
 **Constraints:**
 
-- Must use Swift Testing framework syntax and patterns
-- Focus on planning rather than implementation details
-- Consider Swift Package Manager testing workflows
-- Address platform-specific testing needs (iOS, macOS, Linux)
-- Plan for both synchronous and asynchronous test scenarios
-- Design tests that can run in parallel where appropriate
+- Must use Swift Testing framework exclusively (no XCTest)
+- Must focus on runtime behavior, not compile-time guarantees
+- Must include comprehensive mock type specifications
+- Must use implementation comments rather than complete code
+- Must test actual data flow and integration scenarios
+- Must meet all specified success criteria and coverage targets
+- Must complete phases in the order specified in the timeline
+- Must design tests that validate real-world usage patterns
+
+**Deliverables:**
+
+- Comprehensive mock type specifications for all tested protocols
+- Test suite structure with runtime behavior focus
+- Integration test scenarios with real data flow
+- Performance testing strategy with measurable benchmarks
+- Implementation comments describing test logic and validation
+- Coverage targets focused on meaningful runtime behavior
