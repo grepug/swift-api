@@ -96,6 +96,7 @@ public enum APIClientError: Throwable, Catching {
     case decodingError(message: String)
     case invalidAccessToken
     case urlSessionError(URLSessionError)
+    case cancelled
     case caught(_ error: Error)
 
     public var userFriendlyMessage: String {
@@ -110,6 +111,8 @@ public enum APIClientError: Throwable, Catching {
             "Failed to decode response: \(message)"
         case .urlSessionError(let error):
             "\(error.userFriendlyMessage)"
+        case .cancelled:
+            "The request was cancelled."
         case .caught(let error):
             ErrorKit.userFriendlyMessage(for: error)
         }
@@ -258,6 +261,8 @@ extension APIClientKind {
                 let message = String(data: data, encoding: .utf8) ?? "Unknown error"
                 throw APIClientError.serverError(statusCode: httpResponse.statusCode, message: message)
             }
+        } catch is CancellationError {
+            throw .cancelled
         } catch let error as APIClientError {
             throw error
         } catch {
