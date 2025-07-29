@@ -40,44 +40,88 @@ struct EndpointTests {
             #expect(decoded == empty)
         }
 
-        @Test("EmptyCodable method overload resolution")
-        func emptyCodableMethodOverloadResolution() throws {
-            // Test that EmptyCodable-specific methods are called instead of generic ones
-            // We'll use invalid JSON data to differentiate the behavior:
-            // - Generic method would try to decode and throw an error
-            // - EmptyCodable-specific method always returns EmptyCodable() regardless of data
+        @Test("EmptyCodable runtime type checking")
+        func emptyCodableRuntimeTypeChecking() async throws {
+            // Test that the runtime type checking in RouteKind.block() correctly handles EmptyCodable
+            // The logic: E.RequestQuery.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestQuery : try req.decodedRequestQuery(E.RequestQuery.self)
 
+            // Create a mock route to test the block method
+            let mockRoute = MockRoute()
+
+            // Test with an endpoint that has EmptyCodable for RequestQuery and RequestBody
+            struct EmptyEndpoint: Endpoint {
+                static var path: String { "/empty" }
+                static var method: EndpointMethod { .GET }
+
+                typealias RequestQuery = EmptyCodable
+                typealias RequestBody = EmptyCodable
+                typealias ResponseContent = MockPostEndpoint.ResponseContent
+                typealias ResponseChunk = EmptyCodable
+
+                var body: RequestBody { EmptyCodable() }
+                var query: RequestQuery { EmptyCodable() }
+            }
+
+            // Configure the route with the empty endpoint
+            let configuredRoute = mockRoute.block(EmptyEndpoint.self) { context in
+                // This handler should receive EmptyCodable instances for query and body
+                // without any JSON decoding attempts
+                #expect(context.query == EmptyCodable())
+                #expect(context.body == EmptyCodable())
+                return MockPostEndpoint.ResponseContent(result: "success")
+            }
+
+            // Create a request with invalid JSON data
             let invalidJsonData = "invalid json".data(using: .utf8)!
             let requestWithInvalidData = MockRequest(
                 bodyData: invalidJsonData,
                 queryData: invalidJsonData
             )
 
-            // If the generic CoSendable method were called, it would try to decode the invalid JSON
-            // and throw an error. If the EmptyCodable-specific method is called, it should
-            // return EmptyCodable() without attempting to decode.
+            // The handler should work without throwing, because EmptyCodable types
+            // are handled by runtime type checking, not JSON decoding
+            let response = try await configuredRoute.handler(requestWithInvalidData)
 
-            // This should call the EmptyCodable-specific overload and NOT throw
-            let decodedBody = try requestWithInvalidData.decodedRequestBody(EmptyCodable.self)
-            #expect(decodedBody == EmptyCodable())
+            // Verify the response was created successfully
+            let mockResponse = response as MockResponse
+            if let responseData = mockResponse.data as? MockPostEndpoint.ResponseContent {
+                #expect(responseData.result == "success")
+            } else {
+                #expect(Bool(false), "Response should contain MockPostEndpoint.ResponseContent")
+            }
+        }
 
-            // This should call the EmptyCodable-specific overload and NOT throw
-            let decodedQuery = try requestWithInvalidData.decodedRequestQuery(EmptyCodable.self)
-            #expect(decodedQuery == EmptyCodable())
+        @Test("EmptyCodable vs CoSendable type checking")
+        func emptyCodableVsCoSendableTypeChecking() async throws {
+            // Test that non-EmptyCodable types still use JSON decoding
+            struct NonEmptyEndpoint: Endpoint {
+                static var path: String { "/non-empty" }
+                static var method: EndpointMethod { .POST }
 
-            // For comparison, let's verify that the generic method WOULD throw with invalid JSON
-            // by testing with a different CoSendable type
-            struct TestType: CoSendable {
-                let value: String
+                typealias RequestQuery = MockPostEndpoint.RequestBody  // CoSendable but not EmptyCodable
+                typealias RequestBody = MockPostEndpoint.RequestBody  // CoSendable but not EmptyCodable
+                typealias ResponseContent = MockPostEndpoint.ResponseContent
+                typealias ResponseChunk = EmptyCodable
+
+                var body: RequestBody { MockPostEndpoint.RequestBody(data: "default") }
+                var query: RequestQuery { MockPostEndpoint.RequestBody(data: "default") }
             }
 
-            // This should use the generic method and throw because of invalid JSON
-            #expect(throws: (any Error).self) {
-                _ = try requestWithInvalidData.decodedRequestBody(TestType.self)
+            let mockRoute = MockRoute()
+            let configuredRoute = mockRoute.block(NonEmptyEndpoint.self) { context in
+                return MockPostEndpoint.ResponseContent(result: "success")
             }
 
-            #expect(throws: (any Error).self) {
-                _ = try requestWithInvalidData.decodedRequestQuery(TestType.self)
+            // With invalid JSON, this should throw because non-EmptyCodable types
+            // go through the JSON decoding path
+            let invalidJsonData = "invalid json".data(using: .utf8)!
+            let requestWithInvalidData = MockRequest(
+                bodyData: invalidJsonData,
+                queryData: invalidJsonData
+            )
+
+            await #expect(throws: (any Error).self) {
+                _ = try await configuredRoute.handler(requestWithInvalidData)
             }
         }
     }

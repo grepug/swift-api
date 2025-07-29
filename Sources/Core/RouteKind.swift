@@ -40,12 +40,17 @@ extension RouteKind {
         me.method = E.method
 
         me.handler = { req in
+            let query = E.RequestQuery.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestQuery : try req.decodedRequestQuery(E.RequestQuery.self)
+            let body = E.RequestBody.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestBody : try req.decodedRequestBody(E.RequestBody.self)
+
             let context = RequestContext(
                 request: req,
-                query: try req.decodedRequestQuery(E.RequestQuery.self),
-                body: try req.decodedRequestBody(E.RequestBody.self),
+                query: query,
+                body: body,
             )
+
             let result = try await handler(context)
+
             return Response.fromCodable(result)
         }
 
@@ -61,10 +66,13 @@ extension RouteKind {
         me.method = E.method
 
         me.handler = { req in
+            let query = E.RequestQuery.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestQuery : try req.decodedRequestQuery(E.RequestQuery.self)
+            let body = E.RequestBody.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestBody : try req.decodedRequestBody(E.RequestBody.self)
+
             let context = RequestContext(
                 request: req,
-                query: try req.decodedRequestQuery(E.RequestQuery.self),
-                body: try req.decodedRequestBody(E.RequestBody.self),
+                query: query,
+                body: body
             )
             let result = try await handler(context)
             return Response.fromStream(result)
@@ -79,16 +87,6 @@ public protocol RouteRequestKind: Sendable {
 
     func decodedRequestBody<T: CoSendable>(_ type: T.Type) throws -> T
     func decodedRequestQuery<T: CoSendable>(_ type: T.Type) throws -> T
-}
-
-extension RouteRequestKind {
-    public func decodedRequestBody(_ type: EmptyCodable.Type) throws -> EmptyCodable {
-        EmptyCodable()
-    }
-
-    public func decodedRequestQuery(_ type: EmptyCodable.Type) throws -> EmptyCodable {
-        EmptyCodable()
-    }
 }
 
 public protocol RouteResponseKind {
