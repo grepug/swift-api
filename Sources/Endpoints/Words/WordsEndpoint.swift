@@ -38,6 +38,7 @@ extension EP.Words {
     public struct FetchSuggestedWords: Endpoint {
         public static var path: String { "/words/suggested" }
         public var body: RequestBody
+        public static var method: EndpointMethod { .POST }
 
         public init(body: RequestBody) {
             self.body = body
@@ -65,6 +66,7 @@ extension EP.Words {
     public struct LookupWord: Endpoint {
         public static var path: String { "/words/lookup" }
         public var body: RequestBody
+        public static var method: EndpointMethod { .POST }
 
         public init(body: RequestBody) {
             self.body = body

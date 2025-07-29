@@ -40,10 +40,6 @@ public protocol Endpoint: Sendable {
     var query: RequestQuery { get }
 }
 
-extension Endpoint {
-    public static var method: EndpointMethod { .GET }
-}
-
 extension Endpoint where RequestBody == EmptyCodable {
     public var body: RequestBody { EmptyCodable() }
 }
