@@ -221,7 +221,7 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
         // Scan for all var properties in the struct that need initialization
         for member in structDecl.memberBlock.members {
             if let varDecl = member.decl.as(VariableDeclSyntax.self),
-                varDecl.modifiers.contains(where: { $0.name.tokenKind == .keyword(.public) })
+                shouldProcessVariable(varDecl)
             {
 
                 for binding in varDecl.bindings {
@@ -579,7 +579,7 @@ public struct DTOMacro: ExtensionMacro, MemberMacro {
         // Scan for all var properties in the struct that need initialization
         for member in structDecl.memberBlock.members {
             if let varDecl = member.decl.as(VariableDeclSyntax.self),
-                varDecl.modifiers.contains(where: { $0.name.tokenKind == .keyword(.public) })
+                shouldProcessVariable(varDecl)
             {
 
                 for binding in varDecl.bindings {
@@ -650,6 +650,30 @@ public struct DTOMacro: ExtensionMacro, MemberMacro {
             }
         }
     }
+}
+
+// MARK: - Helper Functions
+
+/// Checks if a variable declaration should be processed by our macros
+/// (either has no access modifier or is public, but not private/internal/etc.)
+private func shouldProcessVariable(_ varDecl: VariableDeclSyntax) -> Bool {
+    // Check if there are any access modifiers
+    let hasAccessModifier = varDecl.modifiers.contains { modifier in
+        switch modifier.name.tokenKind {
+        case .keyword(.public), .keyword(.private), .keyword(.internal), .keyword(.fileprivate):
+            return true
+        default:
+            return false
+        }
+    }
+
+    // If no access modifier, we should process it (it will be made public)
+    if !hasAccessModifier {
+        return true
+    }
+
+    // If has access modifier, only process if it's public
+    return varDecl.modifiers.contains(where: { $0.name.tokenKind == .keyword(.public) })
 }
 
 // MARK: - Macro Error

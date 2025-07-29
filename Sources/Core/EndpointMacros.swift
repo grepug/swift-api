@@ -16,20 +16,12 @@ import Foundation
 /// ```swift
 /// @Endpoint("/words/suggested", .POST)
 /// public struct FetchSuggestedWords {
-///     public struct Body: Codable, Sendable {
-///         public var text: String
-///
-///         public init(text: String) {
-///             self.text = text
-///         }
+///     struct Body: Codable, Sendable {
+///         public var text: String               // Properties must be explicitly public
 ///     }
 ///
-///     public struct ResponseContent: Codable, Sendable {
+///     struct ResponseContent: Codable, Sendable {
 ///         public var segments: [ContextModel.ContextSegment]
-///
-///         public init(segments: [ContextModel.ContextSegment]) {
-///             self.segments = segments
-///         }
 ///     }
 /// }
 /// ```
@@ -40,6 +32,8 @@ import Foundation
 /// - Static `method` property with the provided method
 /// - Default `body` and `query` properties (if not defined)
 /// - Public initializer (if Body is defined)
+/// - Processes properties with no access modifier or 'public' access modifier
+/// Note: Properties must be manually declared as public for external use
 @attached(extension, conformances: Endpoint)
 @attached(member, names: arbitrary)
 public macro Endpoint(_ path: String, _ method: EndpointMethod) = #externalMacro(module: "Macros", type: "EndpointMacro")
@@ -69,15 +63,16 @@ public macro EndpointGroup(_ name: String) = #externalMacro(module: "Macros", ty
 /// ```swift
 /// @DTO
 /// public struct Body {
-///     public var text: String
-///     public var token: ContextModel.TokenItem
+///     public var text: String                    // Properties must be explicitly public
+///     public var token: ContextModel.TokenItem   // For external package usage
+///     public var count: Int = 5                  // Default values become default parameters
 /// }
 /// ```
 ///
 /// Usage with enum:
 /// ```swift
 /// @DTO
-/// public enum Feature {
+/// public enum Feature {  // Only the type needs 'public'
 ///     case importFulltext
 ///     case addContextSegment
 /// }
@@ -87,6 +82,8 @@ public macro EndpointGroup(_ name: String) = #externalMacro(module: "Macros", ty
 /// - Conformance to Hashable, Codable, Sendable protocols
 /// - For structs: Public initializer with all properties without default values
 /// - For enums: Only protocol conformance (no initializer)
+/// - Processes properties with no access modifier or 'public' access modifier
+/// Note: Properties must be manually declared as public for external use
 @attached(extension, conformances: Hashable, Codable, Sendable)
 @attached(member, names: arbitrary)
 public macro DTO() = #externalMacro(module: "Macros", type: "DTOMacro")

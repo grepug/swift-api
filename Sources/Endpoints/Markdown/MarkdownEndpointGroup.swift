@@ -6,7 +6,7 @@
 // Copyright © 2025 Organization. All rights reserved.
 //
 
-/// Markdown endpoint group implementation for text processing and conversion.
+/// Markdown endpoint group providing implementation for text processing and conversion.
 ///
 /// This file provides endpoints for converting various text sources (EPUB, PDF, web content)
 /// into markdown format, supporting both streaming and block responses.
@@ -159,23 +159,6 @@ extension EP.Markdown.CreateMarkdown {
 
         /// Whether the content is in English
         public var isEnglish: Bool
-
-        // MARK: Initialization
-
-        /// Creates a new request body
-        /// - Parameters:
-        ///   - texts: Array of text content to process
-        ///   - source: Source type of the content
-        ///   - isEnglish: Language indicator for processing
-        public init(
-            texts: [String],
-            source: Source,
-            isEnglish: Bool,
-        ) {
-            self.texts = texts
-            self.source = source
-            self.isEnglish = isEnglish
-        }
     }
 
     // MARK: - Response Types
