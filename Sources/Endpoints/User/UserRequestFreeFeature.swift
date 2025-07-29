@@ -5,15 +5,12 @@ extension EP.User {
     @Endpoint("/user/check-feature-availability", .GET)
     public struct FetchFreeFeature {
         public var query: Query
-
-        public init(query: Query) {
-            self.query = query
-        }
     }
 }
 
 extension EP.User.FetchFreeFeature {
-    public enum Feature: String, CoSendable, CaseIterable {
+    @DTO
+    public enum Feature: String, CaseIterable {
         case importFulltext
         case addContextSegment
         case contextTranslation
@@ -41,15 +38,16 @@ extension EP.User.FetchFreeFeature {
         }
     }
 
-    public struct FeatureLimitInfo: CoSendable {
+    @DTO
+    public struct FeatureLimitInfo {
         public var featureCanUse: [Feature: Bool] = [:]
         public var featureNextAvailableDate: [Feature: Date?] = [:]
-
-        public init() {}
     }
 
-    public struct Query: CoSendable {
-        public enum StringBool: String, CoSendable {
+    @DTO
+    public struct Query {
+        @DTO
+        public enum StringBool: String {
             case `true`
             case `false`
 
@@ -67,11 +65,8 @@ extension EP.User.FetchFreeFeature {
         }
     }
 
-    public struct ResponseContent: CoSendable {
+    @DTO
+    public struct ResponseContent {
         public let info: FeatureLimitInfo
-
-        public init(info: FeatureLimitInfo) {
-            self.info = info
-        }
     }
 }

@@ -24,22 +24,15 @@ extension EP {
         public struct AppConfig {
             public var query: Query
 
-            public struct Query: CoSendable {
+            @DTO
+            public struct Query {
                 public var appBuild: String
-
-                public init(appBuild: String) {
-                    self.appBuild = appBuild
-                }
             }
 
-            public struct ResponseContent: CoSendable {
+            @DTO
+            public struct ResponseContent {
                 public var forceUpdate: Bool
                 public var appReviewMode: Bool
-
-                public init(forceUpdate: Bool, appReviewMode: Bool) {
-                    self.forceUpdate = forceUpdate
-                    self.appReviewMode = appReviewMode
-                }
             }
         }
     }

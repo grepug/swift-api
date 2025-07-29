@@ -505,11 +505,159 @@ public struct EndpointGroupMacro: PeerMacro {
     }
 }
 
+/// Implementation of the `@DTO` macro, which automatically adds DTO conformances and initializers
+public struct DTOMacro: ExtensionMacro, MemberMacro {
+
+    // MARK: - ExtensionMacro
+
+    public static func expansion(
+        of node: AttributeSyntax,
+        attachedTo declaration: some DeclGroupSyntax,
+        providingExtensionsOf type: some TypeSyntaxProtocol,
+        conformingTo protocols: [TypeSyntax],
+        in context: some MacroExpansionContext
+    ) throws -> [ExtensionDeclSyntax] {
+
+        // Create extension that adds Hashable, Codable, Sendable conformance
+        let extensionDecl = ExtensionDeclSyntax(
+            extendedType: type,
+            inheritanceClause: InheritanceClauseSyntax {
+                for conformance in protocols {
+                    InheritedTypeSyntax(type: conformance)
+                }
+            }
+        ) {}
+
+        return [extensionDecl]
+    }
+
+    // MARK: - MemberMacro
+
+    public static func expansion(
+        of node: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
+        conformingTo protocols: [TypeSyntax],
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+
+        var members: [DeclSyntax] = []
+
+        // Handle struct declarations
+        if let structDecl = declaration.as(StructDeclSyntax.self) {
+            // Check if there's already an initializer
+            let hasInitializer = structDecl.memberBlock.members.contains { member in
+                return member.decl.is(InitializerDeclSyntax.self)
+            }
+
+            // Generate public initializer if no initializer exists
+            if !hasInitializer {
+                let initializer = try generateDTOInitializer(for: structDecl)
+                if let initializer = initializer {
+                    members.append(DeclSyntax(initializer))
+                }
+            }
+        }
+        // Handle enum declarations - no initializer needed, just protocol conformance
+        else if declaration.is(EnumDeclSyntax.self) {
+            // For enums, we only add protocol conformance via the ExtensionMacro
+            // No members need to be added here
+        } else {
+            throw MacroError.notAppliedToSupportedType
+        }
+
+        return members
+    }
+
+    // MARK: - Helper Methods
+
+    private static func generateDTOInitializer(for structDecl: StructDeclSyntax) throws -> InitializerDeclSyntax? {
+
+        // Collect all stored properties that need to be initialized
+        var parameters: [FunctionParameterSyntax] = []
+        var assignments: [String] = []
+
+        // Scan for all var properties in the struct that need initialization
+        for member in structDecl.memberBlock.members {
+            if let varDecl = member.decl.as(VariableDeclSyntax.self),
+                varDecl.modifiers.contains(where: { $0.name.tokenKind == .keyword(.public) })
+            {
+
+                for binding in varDecl.bindings {
+                    if let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
+                        let typeAnnotation = binding.typeAnnotation
+                    {
+
+                        let propertyName = pattern.identifier.text
+                        let typeName = typeAnnotation.type
+
+                        // Create parameter with or without default value
+                        if let initializer = binding.initializer {
+                            // Property has default value - add it as default parameter
+                            parameters.append(
+                                FunctionParameterSyntax(
+                                    firstName: .identifier(propertyName),
+                                    type: typeName,
+                                    defaultValue: InitializerClauseSyntax(
+                                        value: initializer.value
+                                    )
+                                )
+                            )
+                        } else {
+                            // Property has no default value - required parameter
+                            parameters.append(
+                                FunctionParameterSyntax(
+                                    firstName: .identifier(propertyName),
+                                    type: typeName
+                                )
+                            )
+                        }
+
+                        assignments.append("self.\(propertyName) = \(propertyName)")
+                    }
+                }
+            }
+        }
+
+        // Don't generate initializer if no parameters are needed
+        if parameters.isEmpty {
+            return nil
+        }
+
+        // Create the parameter clause
+        let parameterClause = FunctionParameterClauseSyntax {
+            for parameter in parameters {
+                parameter
+            }
+        }
+
+        // Create the body with assignments
+        let bodyStatements = assignments.map { assignment in
+            CodeBlockItemSyntax(
+                item: .expr(ExprSyntax(stringLiteral: assignment))
+            )
+        }
+
+        return InitializerDeclSyntax(
+            modifiers: DeclModifierListSyntax([
+                DeclModifierSyntax(name: .keyword(.public))
+            ]),
+            signature: FunctionSignatureSyntax(
+                parameterClause: parameterClause
+            )
+        ) {
+            for statement in bodyStatements {
+                statement
+            }
+        }
+    }
+}
+
 // MARK: - Macro Error
 
 enum MacroError: Error, CustomStringConvertible {
     case missingGroupName
     case notAppliedToStruct
+    case notAppliedToSupportedType
     case invalidArguments
     case invalidPathArgument
     case invalidMethodArgument
@@ -520,6 +668,8 @@ enum MacroError: Error, CustomStringConvertible {
             return "@EndpointGroup macro requires a 'name' parameter"
         case .notAppliedToStruct:
             return "@Endpoint macro can only be applied to struct declarations"
+        case .notAppliedToSupportedType:
+            return "@DTO macro can only be applied to struct or enum declarations"
         case .invalidArguments:
             return "@Endpoint macro requires path and method arguments"
         case .invalidPathArgument:

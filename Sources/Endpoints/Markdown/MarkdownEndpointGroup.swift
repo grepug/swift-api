@@ -135,12 +135,14 @@ extension EP.Markdown.CreateMarkdown {
     // MARK: - Request Types
 
     /// Request body for markdown creation
-    public struct Body: CoSendable {
+    @DTO
+    public struct Body {
 
         // MARK: - Source Type
 
         /// Enumeration of supported text sources
-        public enum Source: String, CoSendable {
+        @DTO
+        public enum Source: String {
             case epub
             case pdf
             case web
@@ -179,7 +181,8 @@ extension EP.Markdown.CreateMarkdown {
     // MARK: - Response Types
 
     /// Response chunk for streaming markdown content
-    public struct ResponseChunk: CoSendable {
+    @DTO
+    public struct ResponseChunk {
 
         // MARK: Properties
 
@@ -203,7 +206,8 @@ extension EP.Markdown.CreateMarkdownV2 {
     // MARK: - Request Types
 
     /// Request body for markdown creation (V2)
-    public struct Body: CoSendable {
+    @DTO
+    public struct Body {
 
         // MARK: Properties
 
@@ -222,7 +226,8 @@ extension EP.Markdown.CreateMarkdownV2 {
     // MARK: - Response Types
 
     /// Response containing complete markdown content
-    public struct ResponseContent: CoSendable {
+    @DTO
+    public struct ResponseContent {
 
         // MARK: Properties
 

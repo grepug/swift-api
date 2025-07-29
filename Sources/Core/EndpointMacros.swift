@@ -58,3 +58,35 @@ public macro Endpoint(_ path: String, _ method: EndpointMethod) = #externalMacro
 /// ```
 @attached(peer)
 public macro EndpointGroup(_ name: String) = #externalMacro(module: "Macros", type: "EndpointGroupMacro")
+
+/// A macro that automatically makes a struct or enum conform to common DTO protocols and generates initializers.
+///
+/// This macro automatically adds conformance to Hashable, Codable, and Sendable protocols.
+/// For structs, it also generates a public initializer with all properties that don't have default values.
+/// For enums, it only adds protocol conformance (no initializer needed).
+///
+/// Usage with struct:
+/// ```swift
+/// @DTO
+/// public struct Body {
+///     public var text: String
+///     public var token: ContextModel.TokenItem
+/// }
+/// ```
+///
+/// Usage with enum:
+/// ```swift
+/// @DTO
+/// public enum Feature {
+///     case importFulltext
+///     case addContextSegment
+/// }
+/// ```
+///
+/// This will automatically generate:
+/// - Conformance to Hashable, Codable, Sendable protocols
+/// - For structs: Public initializer with all properties without default values
+/// - For enums: Only protocol conformance (no initializer)
+@attached(extension, conformances: Hashable, Codable, Sendable)
+@attached(member, names: arbitrary)
+public macro DTO() = #externalMacro(module: "Macros", type: "DTOMacro")
