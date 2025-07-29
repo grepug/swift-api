@@ -4,7 +4,8 @@ import SwiftAPICore
 typealias CoSendable = Codable & Sendable & Hashable
 
 extension EP {
-    public enum Words {}
+    public enum Words {
+    }
 }
 
 public protocol WordsEndpointGroupProtocol: EndpointGroup {
@@ -35,13 +36,10 @@ extension WordsEndpointGroupProtocol {
 }
 
 extension EP.Words {
-    public struct FetchSuggestedWords: Endpoint {
-        public static var path: String { "/words/suggested" }
-        public var body: RequestBody
-        public static var method: EndpointMethod { .POST }
-
-        public init(body: RequestBody) {
-            self.body = body
+    @Endpoint("/words/suggested", .POST)
+    public struct FetchSuggestedWords {
+        public struct RequestQuery: CoSendable {
+            public init() {}
         }
 
         public struct RequestBody: CoSendable {
@@ -63,13 +61,10 @@ extension EP.Words {
 }
 
 extension EP.Words {
-    public struct LookupWord: Endpoint {
-        public static var path: String { "/words/lookup" }
-        public var body: RequestBody
-        public static var method: EndpointMethod { .POST }
-
-        public init(body: RequestBody) {
-            self.body = body
+    @Endpoint("/words/lookup", .POST)
+    public struct LookupWord {
+        public struct RequestQuery: CoSendable {
+            public init() {}
         }
 
         public struct RequestBody: CoSendable {

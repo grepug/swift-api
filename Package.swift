@@ -1,6 +1,7 @@
 // swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
+import CompilerPluginSupport
 import PackageDescription
 
 let package = Package(
@@ -34,6 +35,7 @@ let package = Package(
         .package(url: "https://github.com/FlineDev/ErrorKit.git", from: "1.0.0"),
         .package(url: "https://github.com/grepug/concurrency-utils.git", branch: "main"),
         .package(url: "https://github.com/grepug/context-shared-models.git", branch: "main"),
+        .package(url: "https://github.com/swiftlang/swift-syntax", "600.0.0"..<"602.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -41,7 +43,8 @@ let package = Package(
         .target(
             name: "SwiftAPICore",
             dependencies: [
-                .product(name: "ErrorKit", package: "ErrorKit")
+                .product(name: "ErrorKit", package: "ErrorKit"),
+                "Macros",
             ],
             path: "Sources/Core"
         ),
@@ -58,10 +61,19 @@ let package = Package(
             name: "ContextEndpoints",
             dependencies: [
                 "SwiftAPICore",
+                "Macros",
                 .product(name: "ErrorKit", package: "ErrorKit"),
                 .product(name: "ContextSharedModels", package: "context-shared-models"),
             ],
             path: "Sources/Endpoints"
+        ),
+        .macro(
+            name: "Macros",
+            dependencies: [
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+            ],
+            path: "Sources/Macros"
         ),
         .testTarget(
             name: "SwiftAPITests",

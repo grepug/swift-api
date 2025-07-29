@@ -89,14 +89,11 @@ extension EP {
         ///
         /// This endpoint processes text from various sources and streams back
         /// markdown content as it's generated, allowing for real-time processing.
-        public struct CreateMarkdown: Endpoint {
+        @Endpoint("/markdown/create", .POST)
+        public struct CreateMarkdown {
 
             // MARK: Properties
             public var body: RequestBody
-
-            // MARK: Endpoint Configuration
-            static public var path: String { "/markdown/create" }
-            static public var method: EndpointMethod { .POST }
 
             // MARK: Initialization
 
@@ -117,16 +114,11 @@ extension EP.Markdown {
     ///
     /// This endpoint processes text and returns the complete markdown
     /// content in a single response, suitable for smaller text inputs.
-    public struct CreateMarkdownV2: Endpoint {
+    @Endpoint("/markdown/create_v2", .POST)
+    public struct CreateMarkdownV2 {
 
         // MARK: Properties
         public var body: RequestBody
-
-        // MARK: Endpoint Configuration
-        static public var path: String { "/markdown/create_v2" }
-        static public var method: EndpointMethod { .POST }
-
-        // MARK: Initialization
 
         /// Creates a new markdown creation request (V2)
         /// - Parameter body: The request body containing text data

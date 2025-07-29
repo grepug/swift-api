@@ -20,11 +20,9 @@ extension SystemEndpointGroupProtocol {
 extension EP {
     public enum System {
 
-        public struct AppConfig: Endpoint {
+        @Endpoint("/system/app-config", .GET)
+        public struct AppConfig {
             public var query: RequestQuery
-
-            static public var path: String { "/system/app-config" }
-            static public var method: EndpointMethod { .GET }
 
             public init(query: RequestQuery) {
                 self.query = query
