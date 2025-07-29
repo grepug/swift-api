@@ -23,7 +23,9 @@ public enum EndpointMethod: String, Sendable {
 
 public typealias CoSendable = Sendable & Codable & Hashable
 
-public struct EmptyCodable: CoSendable {}
+public struct EmptyCodable: CoSendable {
+    public init() {}
+}
 
 public protocol Endpoint: Sendable {
     associatedtype RequestBody: CoSendable = EmptyCodable
