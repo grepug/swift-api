@@ -71,12 +71,12 @@ extension EP.Words {
         }
 
         public struct RequestBody: CoSendable {
-            public var context: String
-            public var adjacentText: String
+            public var text: String
+            public var token: ContextModel.TokenItem
 
-            public init(context: String, adjacentText: String) {
-                self.context = context
-                self.adjacentText = adjacentText
+            public init(text: String, token: ContextModel.TokenItem) {
+                self.text = text
+                self.token = token
             }
         }
 
