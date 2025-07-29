@@ -56,6 +56,9 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
 
         var members: [DeclSyntax] = []
 
+        // Note: Nested types like Body, Query, ResponseContent should be manually annotated with @DTO
+        // for automatic protocol conformance (Hashable, Codable, Sendable) and initializer generation
+
         // Add static path property
         let pathProperty = VariableDeclSyntax(
             modifiers: DeclModifierListSyntax([
@@ -206,6 +209,56 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
         return members
     }
 
+    // MARK: - PeerMacro
+
+    public static func expansion(
+        of node: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+
+        guard let structDecl = declaration.as(StructDeclSyntax.self) else {
+            return []
+        }
+
+        var peerDeclarations: [DeclSyntax] = []
+
+        // Get the parent struct name for creating extensions
+        let parentStructName = structDecl.name.text
+
+        // Scan for nested types that should get automatic DTO functionality
+        for member in structDecl.memberBlock.members {
+            // Handle nested struct declarations
+            if let nestedStruct = member.decl.as(StructDeclSyntax.self),
+                shouldApplyDTOToNestedType(nestedStruct.name.text)
+            {
+
+                // Generate DTO extension for the nested struct
+                let dtoExtensions = try generateDTOExtensionsForNestedStruct(
+                    parentName: parentStructName,
+                    nestedStruct: nestedStruct,
+                    in: context
+                )
+                peerDeclarations.append(contentsOf: dtoExtensions)
+            }
+            // Handle nested enum declarations
+            else if let nestedEnum = member.decl.as(EnumDeclSyntax.self),
+                shouldApplyDTOToNestedType(nestedEnum.name.text)
+            {
+
+                // Generate DTO extension for the nested enum
+                let dtoExtensions = try generateDTOExtensionsForNestedEnum(
+                    parentName: parentStructName,
+                    nestedEnum: nestedEnum,
+                    in: context
+                )
+                peerDeclarations.append(contentsOf: dtoExtensions)
+            }
+        }
+
+        return peerDeclarations
+    }
+
     // MARK: - Helper Methods
 
     private static func generateComprehensiveInitializer(
@@ -318,6 +371,105 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
         let method = methodExpr.declName.baseName.text
 
         return (path, method)
+    }
+
+    // MARK: - DTO Integration Helper Methods
+
+    private static func shouldApplyDTOToNestedType(_ typeName: String) -> Bool {
+        // Common nested type names that should automatically get DTO functionality
+        let dtoTargetNames: Set<String> = [
+            "Body", "Query", "ResponseContent", "ResponseChunk",
+            "Feature", "Source", "FeatureLimitInfo", "StringBool",
+        ]
+
+        return dtoTargetNames.contains(typeName)
+    }
+
+    private static func generateDTOExtensionsForNestedStruct(
+        parentName: String,
+        nestedStruct: StructDeclSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+
+        let nestedStructName = nestedStruct.name.text
+        let fullTypeName = "\(parentName).\(nestedStructName)"
+
+        var extensions: [DeclSyntax] = []
+
+        // Create protocol conformance extension (equivalent to @DTO ExtensionMacro)
+        let protocolExtension = ExtensionDeclSyntax(
+            extendedType: IdentifierTypeSyntax(name: .identifier(fullTypeName)),
+            inheritanceClause: InheritanceClauseSyntax {
+                InheritedTypeSyntax(type: IdentifierTypeSyntax(name: .identifier("Hashable")))
+                InheritedTypeSyntax(type: IdentifierTypeSyntax(name: .identifier("Codable")))
+                InheritedTypeSyntax(type: IdentifierTypeSyntax(name: .identifier("Sendable")))
+            }
+        ) {}
+
+        extensions.append(DeclSyntax(protocolExtension))
+
+        // Generate initializer extension if needed (equivalent to @DTO MemberMacro)
+        if let initializerExtension = try generateInitializerExtensionForNestedStruct(
+            fullTypeName: fullTypeName,
+            nestedStruct: nestedStruct,
+            in: context
+        ) {
+            extensions.append(DeclSyntax(initializerExtension))
+        }
+
+        return extensions
+    }
+
+    private static func generateDTOExtensionsForNestedEnum(
+        parentName: String,
+        nestedEnum: EnumDeclSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+
+        let nestedEnumName = nestedEnum.name.text
+        let fullTypeName = "\(parentName).\(nestedEnumName)"
+
+        // Create protocol conformance extension for enum (equivalent to @DTO ExtensionMacro)
+        let protocolExtension = ExtensionDeclSyntax(
+            extendedType: IdentifierTypeSyntax(name: .identifier(fullTypeName)),
+            inheritanceClause: InheritanceClauseSyntax {
+                InheritedTypeSyntax(type: IdentifierTypeSyntax(name: .identifier("Hashable")))
+                InheritedTypeSyntax(type: IdentifierTypeSyntax(name: .identifier("Codable")))
+                InheritedTypeSyntax(type: IdentifierTypeSyntax(name: .identifier("Sendable")))
+            }
+        ) {}
+
+        return [DeclSyntax(protocolExtension)]
+    }
+
+    private static func generateInitializerExtensionForNestedStruct(
+        fullTypeName: String,
+        nestedStruct: StructDeclSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> ExtensionDeclSyntax? {
+
+        // Check if there's already an initializer
+        let hasInitializer = nestedStruct.memberBlock.members.contains { member in
+            return member.decl.is(InitializerDeclSyntax.self)
+        }
+
+        if hasInitializer {
+            return nil  // Don't generate if one already exists
+        }
+
+        // Generate the initializer using the same logic as DTOMacro
+        guard let initializer = try generateDTOInitializer(for: nestedStruct) else {
+            return nil  // No initializer needed (no parameters)
+        }
+
+        // Create extension with the initializer
+        let initializerExtension = ExtensionDeclSyntax(
+            extendedType: IdentifierTypeSyntax(name: .identifier(fullTypeName))
+        ) {
+            initializer
+        }
+
+        return initializerExtension
     }
 }
 
@@ -567,89 +719,6 @@ public struct DTOMacro: ExtensionMacro, MemberMacro {
 
         return members
     }
-
-    // MARK: - Helper Methods
-
-    private static func generateDTOInitializer(for structDecl: StructDeclSyntax) throws -> InitializerDeclSyntax? {
-
-        // Collect all stored properties that need to be initialized
-        var parameters: [FunctionParameterSyntax] = []
-        var assignments: [String] = []
-
-        // Scan for all var properties in the struct that need initialization
-        for member in structDecl.memberBlock.members {
-            if let varDecl = member.decl.as(VariableDeclSyntax.self),
-                shouldProcessVariable(varDecl)
-            {
-
-                for binding in varDecl.bindings {
-                    if let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
-                        let typeAnnotation = binding.typeAnnotation
-                    {
-
-                        let propertyName = pattern.identifier.text
-                        let typeName = typeAnnotation.type
-
-                        // Create parameter with or without default value
-                        if let initializer = binding.initializer {
-                            // Property has default value - add it as default parameter
-                            parameters.append(
-                                FunctionParameterSyntax(
-                                    firstName: .identifier(propertyName),
-                                    type: typeName,
-                                    defaultValue: InitializerClauseSyntax(
-                                        value: initializer.value
-                                    )
-                                )
-                            )
-                        } else {
-                            // Property has no default value - required parameter
-                            parameters.append(
-                                FunctionParameterSyntax(
-                                    firstName: .identifier(propertyName),
-                                    type: typeName
-                                )
-                            )
-                        }
-
-                        assignments.append("self.\(propertyName) = \(propertyName)")
-                    }
-                }
-            }
-        }
-
-        // Don't generate initializer if no parameters are needed
-        if parameters.isEmpty {
-            return nil
-        }
-
-        // Create the parameter clause
-        let parameterClause = FunctionParameterClauseSyntax {
-            for parameter in parameters {
-                parameter
-            }
-        }
-
-        // Create the body with assignments
-        let bodyStatements = assignments.map { assignment in
-            CodeBlockItemSyntax(
-                item: .expr(ExprSyntax(stringLiteral: assignment))
-            )
-        }
-
-        return InitializerDeclSyntax(
-            modifiers: DeclModifierListSyntax([
-                DeclModifierSyntax(name: .keyword(.public))
-            ]),
-            signature: FunctionSignatureSyntax(
-                parameterClause: parameterClause
-            )
-        ) {
-            for statement in bodyStatements {
-                statement
-            }
-        }
-    }
 }
 
 // MARK: - Helper Functions
@@ -674,6 +743,89 @@ private func shouldProcessVariable(_ varDecl: VariableDeclSyntax) -> Bool {
 
     // If has access modifier, only process if it's public
     return varDecl.modifiers.contains(where: { $0.name.tokenKind == .keyword(.public) })
+}
+
+/// Generates a DTO-style initializer for a struct declaration
+/// (shared between DTOMacro and EndpointMacro for nested type processing)
+private func generateDTOInitializer(for structDecl: StructDeclSyntax) throws -> InitializerDeclSyntax? {
+
+    // Collect all stored properties that need to be initialized
+    var parameters: [FunctionParameterSyntax] = []
+    var assignments: [String] = []
+
+    // Scan for all var properties in the struct that need initialization
+    for member in structDecl.memberBlock.members {
+        if let varDecl = member.decl.as(VariableDeclSyntax.self),
+            shouldProcessVariable(varDecl)
+        {
+
+            for binding in varDecl.bindings {
+                if let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
+                    let typeAnnotation = binding.typeAnnotation
+                {
+
+                    let propertyName = pattern.identifier.text
+                    let typeName = typeAnnotation.type
+
+                    // Create parameter with or without default value
+                    if let initializer = binding.initializer {
+                        // Property has default value - add it as default parameter
+                        parameters.append(
+                            FunctionParameterSyntax(
+                                firstName: .identifier(propertyName),
+                                type: typeName,
+                                defaultValue: InitializerClauseSyntax(
+                                    value: initializer.value
+                                )
+                            )
+                        )
+                    } else {
+                        // Property has no default value - required parameter
+                        parameters.append(
+                            FunctionParameterSyntax(
+                                firstName: .identifier(propertyName),
+                                type: typeName
+                            )
+                        )
+                    }
+
+                    assignments.append("self.\(propertyName) = \(propertyName)")
+                }
+            }
+        }
+    }
+
+    // Don't generate initializer if no parameters are needed
+    if parameters.isEmpty {
+        return nil
+    }
+
+    // Create the parameter clause
+    let parameterClause = FunctionParameterClauseSyntax {
+        for parameter in parameters {
+            parameter
+        }
+    }
+
+    // Create the body with assignments
+    let bodyStatements = assignments.map { assignment in
+        CodeBlockItemSyntax(
+            item: .expr(ExprSyntax(stringLiteral: assignment))
+        )
+    }
+
+    return InitializerDeclSyntax(
+        modifiers: DeclModifierListSyntax([
+            DeclModifierSyntax(name: .keyword(.public))
+        ]),
+        signature: FunctionSignatureSyntax(
+            parameterClause: parameterClause
+        )
+    ) {
+        for statement in bodyStatements {
+            statement
+        }
+    }
 }
 
 // MARK: - Macro Error

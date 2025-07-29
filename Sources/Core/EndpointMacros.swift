@@ -12,15 +12,27 @@ import Foundation
 /// This macro generates the required static properties and default implementations
 /// for the Endpoint protocol.
 ///
-/// Usage:
+/// **Best Practice Pattern:**
 /// ```swift
 /// @Endpoint("/words/suggested", .POST)
 /// public struct FetchSuggestedWords {
-///     struct Body: Codable, Sendable {
+///     public var body: Body
+///     public var query: Query
+/// }
+///
+/// extension FetchSuggestedWords {
+///     @DTO
+///     public struct Body {
 ///         public var text: String               // Properties must be explicitly public
 ///     }
 ///
-///     struct ResponseContent: Codable, Sendable {
+///     @DTO
+///     public struct Query {
+///         public var filter: String? = nil      // Default values become default parameters
+///     }
+///
+///     @DTO
+///     public struct ResponseContent {
 ///         public var segments: [ContextModel.ContextSegment]
 ///     }
 /// }
@@ -32,8 +44,10 @@ import Foundation
 /// - Static `method` property with the provided method
 /// - Default `body` and `query` properties (if not defined)
 /// - Public initializer (if Body is defined)
+/// - For nested types with @DTO: Conformance to Hashable, Codable, Sendable + initializers
 /// - Processes properties with no access modifier or 'public' access modifier
 /// Note: Properties must be manually declared as public for external use
+/// Note: Nested types (Body, Query, ResponseContent, etc.) should use @DTO for automatic functionality
 @attached(extension, conformances: Endpoint)
 @attached(member, names: arbitrary)
 public macro Endpoint(_ path: String, _ method: EndpointMethod) = #externalMacro(module: "Macros", type: "EndpointMacro")

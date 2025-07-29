@@ -59,11 +59,6 @@ extension EP.User.FetchFreeFeature {
 
         public let feature: Feature
         public let useOne: StringBool
-
-        public init(feature: Feature, useOne: Bool) {
-            self.feature = feature
-            self.useOne = useOne ? .true : .false
-        }
     }
 
     @DTO
