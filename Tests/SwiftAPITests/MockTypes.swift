@@ -28,17 +28,17 @@ struct MockGetEndpoint: Endpoint {
 }
 
 struct MockPostEndpoint: Endpoint {
-    var body: RequestBody
+    var body: Body
     static var path: String { "/mock/post" }
     static var method: EndpointMethod { EndpointMethod.POST }
 
-    init(body: RequestBody) {
+    init(body: Body) {
         self.body = body
     }
 }
 
 extension MockPostEndpoint {
-    struct RequestBody: CoSendable {
+    struct Body: CoSendable {
         let data: String
         init(data: String) { self.data = data }
     }

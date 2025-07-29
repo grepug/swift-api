@@ -43,23 +43,23 @@ struct EndpointTests {
         @Test("EmptyCodable runtime type checking")
         func emptyCodableRuntimeTypeChecking() async throws {
             // Test that the runtime type checking in RouteKind.block() correctly handles EmptyCodable
-            // The logic: E.RequestQuery.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestQuery : try req.decodedRequestQuery(E.RequestQuery.self)
+            // The logic: E.Query.self is EmptyCodable.Type ? EmptyCodable() as! E.Query : try req.decodedRequestQuery(E.Query.self)
 
             // Create a mock route to test the block method
             let mockRoute = MockRoute()
 
-            // Test with an endpoint that has EmptyCodable for RequestQuery and RequestBody
+            // Test with an endpoint that has EmptyCodable for Query and Body
             struct EmptyEndpoint: Endpoint {
                 static var path: String { "/empty" }
                 static var method: EndpointMethod { .GET }
 
-                typealias RequestQuery = EmptyCodable
-                typealias RequestBody = EmptyCodable
+                typealias Query = EmptyCodable
+                typealias Body = EmptyCodable
                 typealias ResponseContent = MockPostEndpoint.ResponseContent
                 typealias ResponseChunk = EmptyCodable
 
-                var body: RequestBody { EmptyCodable() }
-                var query: RequestQuery { EmptyCodable() }
+                var body: Body { EmptyCodable() }
+                var query: Query { EmptyCodable() }
             }
 
             // Configure the route with the empty endpoint
@@ -98,13 +98,13 @@ struct EndpointTests {
                 static var path: String { "/non-empty" }
                 static var method: EndpointMethod { .POST }
 
-                typealias RequestQuery = MockPostEndpoint.RequestBody  // CoSendable but not EmptyCodable
-                typealias RequestBody = MockPostEndpoint.RequestBody  // CoSendable but not EmptyCodable
+                typealias Query = MockPostEndpoint.Body  // CoSendable but not EmptyCodable
+                typealias Body = MockPostEndpoint.Body  // CoSendable but not EmptyCodable
                 typealias ResponseContent = MockPostEndpoint.ResponseContent
                 typealias ResponseChunk = EmptyCodable
 
-                var body: RequestBody { MockPostEndpoint.RequestBody(data: "default") }
-                var query: RequestQuery { MockPostEndpoint.RequestBody(data: "default") }
+                var body: Body { MockPostEndpoint.Body(data: "default") }
+                var query: Query { MockPostEndpoint.Body(data: "default") }
             }
 
             let mockRoute = MockRoute()

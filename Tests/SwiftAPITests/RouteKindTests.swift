@@ -47,13 +47,13 @@ struct RouteKindTests {
         @Test("RequestContext creation and usage")
         func requestContextCreation() throws {
             let testUserId = UUID()
-            let bodyData = try JSONEncoder().encode(MockPostEndpoint.RequestBody(data: "test"))
+            let bodyData = try JSONEncoder().encode(MockPostEndpoint.Body(data: "test"))
             let request = MockRequest(userId: testUserId, bodyData: bodyData)
 
             let context = RequestContext(
                 request: request,
                 query: EmptyCodable(),
-                body: MockPostEndpoint.RequestBody(data: "test")
+                body: MockPostEndpoint.Body(data: "test")
             )
 
             #expect(context.request.userId == testUserId)

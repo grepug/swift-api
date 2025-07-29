@@ -42,7 +42,7 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
     /// - Returns: An async sequence of markdown chunks
     /// - Throws: Processing or network errors
     func createMarkdown(
-        context: RequestContext<Route.Request, E1.RequestQuery, E1.RequestBody>,
+        context: RequestContext<Route.Request, E1.Query, E1.Body>,
     ) async throws -> S1
 
     /// Creates markdown from text using block response (V2)
@@ -53,7 +53,7 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
     /// - Returns: Complete markdown response content
     /// - Throws: Processing or network errors
     func createMarkdownV2(
-        context: RequestContext<Route.Request, E2.RequestQuery, E2.RequestBody>,
+        context: RequestContext<Route.Request, E2.Query, E2.Body>,
     ) async throws -> E2.ResponseContent
 }
 
@@ -63,9 +63,9 @@ extension MarkdownEndpointGroupProtocol {
 
     /// Route configuration for markdown endpoints
     ///
-    /// @Sendable (RequestContext<Self.Route.Request, EP.Markdown.CreateMarkdown.RequestQuery, EP.Markdown.CreateMarkdown.RequestBody>, EP.Markdown.CreateMarkdown.Type) async throws -> Self.S1
-    /// @Sendable (RequestContext<Self.Route.Request, EmptyCodable, EP.Markdown.CreateMarkdown.RequestBody>, EP.Markdown.CreateMarkdown.Type) async throws -> Self.S1
-    /// @Sendable (RequestContext<Self.Route.Request, EP.Markdown.CreateMarkdown.RequestQuery, EP.Markdown.CreateMarkdown.RequestBody>) async throws -> Self.S1
+    /// @Sendable (RequestContext<Self.Route.Request, EP.Markdown.CreateMarkdown.Query, EP.Markdown.CreateMarkdown.Body>, EP.Markdown.CreateMarkdown.Type) async throws -> Self.S1
+    /// @Sendable (RequestContext<Self.Route.Request, EmptyCodable, EP.Markdown.CreateMarkdown.Body>, EP.Markdown.CreateMarkdown.Type) async throws -> Self.S1
+    /// @Sendable (RequestContext<Self.Route.Request, EP.Markdown.CreateMarkdown.Query, EP.Markdown.CreateMarkdown.Body>) async throws -> Self.S1
     @RouteBuilder
     public var routes: Routes {
         Route()
@@ -93,13 +93,13 @@ extension EP {
         public struct CreateMarkdown {
 
             // MARK: Properties
-            public var body: RequestBody
+            public var body: Body
 
             // MARK: Initialization
 
             /// Creates a new markdown creation request
             /// - Parameter body: The request body containing text data
-            public init(body: RequestBody) {
+            public init(body: Body) {
                 self.body = body
             }
         }
@@ -118,11 +118,11 @@ extension EP.Markdown {
     public struct CreateMarkdownV2 {
 
         // MARK: Properties
-        public var body: RequestBody
+        public var body: Body
 
         /// Creates a new markdown creation request (V2)
         /// - Parameter body: The request body containing text data
-        public init(body: RequestBody) {
+        public init(body: Body) {
             self.body = body
         }
     }
@@ -135,7 +135,7 @@ extension EP.Markdown.CreateMarkdown {
     // MARK: - Request Types
 
     /// Request body for markdown creation
-    public struct RequestBody: CoSendable {
+    public struct Body: CoSendable {
 
         // MARK: - Source Type
 
@@ -203,7 +203,7 @@ extension EP.Markdown.CreateMarkdownV2 {
     // MARK: - Request Types
 
     /// Request body for markdown creation (V2)
-    public struct RequestBody: CoSendable {
+    public struct Body: CoSendable {
 
         // MARK: Properties
 

@@ -16,7 +16,7 @@ import Foundation
 /// ```swift
 /// @Endpoint("/words/suggested", .POST)
 /// public struct FetchSuggestedWords {
-///     public struct RequestBody: Codable, Sendable {
+///     public struct Body: Codable, Sendable {
 ///         public var text: String
 ///
 ///         public init(text: String) {
@@ -39,7 +39,7 @@ import Foundation
 /// - Static `path` property with the provided path
 /// - Static `method` property with the provided method
 /// - Default `body` and `query` properties (if not defined)
-/// - Public initializer (if RequestBody is defined)
+/// - Public initializer (if Body is defined)
 @attached(extension, conformances: Endpoint)
 @attached(member, names: arbitrary)
 public macro Endpoint(_ path: String, _ method: EndpointMethod) = #externalMacro(module: "Macros", type: "EndpointMacro")

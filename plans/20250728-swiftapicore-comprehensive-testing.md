@@ -38,17 +38,17 @@ struct MockGetEndpoint: Endpoint {
 }
 
 struct MockPostEndpoint: Endpoint {
-    var body: RequestBody
+    var body: Body
     static var path: String { "/mock/post" }
     static var method: EndpointMethod { .POST }
 
-    init(body: RequestBody) {
+    init(body: Body) {
         self.body = body
     }
 }
 
 extension MockPostEndpoint {
-    struct RequestBody: CoSendable {
+    struct Body: CoSendable {
         let data: String
         init(data: String) { self.data = data }
     }
@@ -321,13 +321,13 @@ struct RouteKindTests {
         @Test("RequestContext creation and usage")
         func requestContextCreation() throws {
             let testUserId = UUID()
-            let bodyData = try JSONEncoder().encode(MockPostEndpoint.RequestBody(data: "test"))
+            let bodyData = try JSONEncoder().encode(MockPostEndpoint.Body(data: "test"))
             let request = MockRequest(userId: testUserId, bodyData: bodyData)
 
             let context = RequestContext(
                 request: request,
                 query: EmptyCodable(),
-                body: MockPostEndpoint.RequestBody(data: "test")
+                body: MockPostEndpoint.Body(data: "test")
             )
 
             #expect(context.request.userId == testUserId)
@@ -368,11 +368,11 @@ struct RequestResponseTests {
 
         @Test("Request body decoding with valid data")
         func requestBodyDecodingWithValidData() throws {
-            let originalBody = MockPostEndpoint.RequestBody(data: "test content")
+            let originalBody = MockPostEndpoint.Body(data: "test content")
             let bodyData = try JSONEncoder().encode(originalBody)
             let request = MockRequest(bodyData: bodyData)
 
-            let decodedBody = try request.decodedRequestBody(MockPostEndpoint.RequestBody.self)
+            let decodedBody = try request.decodedRequestBody(MockPostEndpoint.Body.self)
             #expect(decodedBody.data == "test content")
         }
 
@@ -602,7 +602,7 @@ struct IntegrationTests {
         @Test("RequestContext with real endpoint data flow")
         func requestContextWithRealEndpointDataFlow() throws {
             let testUserId = UUID()
-            let requestBody = MockPostEndpoint.RequestBody(data: "context test")
+            let requestBody = MockPostEndpoint.Body(data: "context test")
             let bodyData = try JSONEncoder().encode(requestBody)
 
             let request = MockRequest(userId: testUserId, bodyData: bodyData)
@@ -618,7 +618,7 @@ struct IntegrationTests {
             #expect(context.body.data == "context test")
 
             // Test that request can decode the body correctly
-            let decodedBody = try request.decodedRequestBody(MockPostEndpoint.RequestBody.self)
+            let decodedBody = try request.decodedRequestBody(MockPostEndpoint.Body.self)
             #expect(decodedBody.data == "context test")
         }
 

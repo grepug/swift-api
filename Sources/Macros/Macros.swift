@@ -106,10 +106,10 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
         }
         members.append(DeclSyntax(methodProperty))
 
-        // Check if RequestBody type exists
+        // Check if Body type exists
         let hasRequestBody = structDecl.memberBlock.members.contains { member in
             if let typeDecl = member.decl.as(StructDeclSyntax.self) {
-                return typeDecl.name.text == "RequestBody"
+                return typeDecl.name.text == "Body"
             }
             return false
         }
@@ -132,7 +132,15 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
             return member.decl.is(InitializerDeclSyntax.self)
         }
 
-        // Add body property if RequestBody exists but no body property
+        // Check if Query type exists
+        let hasRequestQuery = structDecl.memberBlock.members.contains { member in
+            if let typeDecl = member.decl.as(StructDeclSyntax.self) {
+                return typeDecl.name.text == "Query"
+            }
+            return false
+        }
+
+        // Add body property if Body exists but no body property
         if hasRequestBody && !hasBodyProperty {
             let bodyProperty = VariableDeclSyntax(
                 modifiers: DeclModifierListSyntax([
@@ -143,39 +151,17 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
                 PatternBindingSyntax(
                     pattern: IdentifierPatternSyntax(identifier: .identifier("body")),
                     typeAnnotation: TypeAnnotationSyntax(
-                        type: IdentifierTypeSyntax(name: .identifier("RequestBody"))
+                        type: IdentifierTypeSyntax(name: .identifier("Body"))
                     )
                 )
             }
             members.append(DeclSyntax(bodyProperty))
         }
 
-        // Add initializer if RequestBody exists but no initializer
-        if hasRequestBody && !hasInitializer {
-            let initializer = InitializerDeclSyntax(
-                modifiers: DeclModifierListSyntax([
-                    DeclModifierSyntax(name: .keyword(.public))
-                ]),
-                signature: FunctionSignatureSyntax(
-                    parameterClause: FunctionParameterClauseSyntax {
-                        FunctionParameterSyntax(
-                            firstName: .identifier("body"),
-                            type: IdentifierTypeSyntax(name: .identifier("RequestBody"))
-                        )
-                    }
-                )
-            ) {
-                ExprSyntax("self.body = body")
-            }
+        // Generate comprehensive public initializer if no initializer exists
+        if !hasInitializer {
+            let initializer = try generateComprehensiveInitializer(for: structDecl, hasRequestBody: hasRequestBody, hasRequestQuery: hasRequestQuery)
             members.append(DeclSyntax(initializer))
-        }
-
-        // Check if RequestQuery type exists
-        let hasRequestQuery = structDecl.memberBlock.members.contains { member in
-            if let typeDecl = member.decl.as(StructDeclSyntax.self) {
-                return typeDecl.name.text == "RequestQuery"
-            }
-            return false
         }
 
         // Check if there's already a query property
@@ -191,7 +177,7 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
             return false
         }
 
-        // Add query property if RequestQuery exists but no query property
+        // Add query property if Query exists but no query property
         if hasRequestQuery && !hasQueryProperty {
             let queryProperty = VariableDeclSyntax(
                 modifiers: DeclModifierListSyntax([
@@ -202,11 +188,11 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
                 PatternBindingSyntax(
                     pattern: IdentifierPatternSyntax(identifier: .identifier("query")),
                     typeAnnotation: TypeAnnotationSyntax(
-                        type: IdentifierTypeSyntax(name: .identifier("RequestQuery"))
+                        type: IdentifierTypeSyntax(name: .identifier("Query"))
                     ),
                     initializer: InitializerClauseSyntax(
                         value: FunctionCallExprSyntax(
-                            calledExpression: DeclReferenceExprSyntax(baseName: .identifier("RequestQuery")),
+                            calledExpression: DeclReferenceExprSyntax(baseName: .identifier("Query")),
                             leftParen: .leftParenToken(),
                             arguments: LabeledExprListSyntax([]),
                             rightParen: .rightParenToken()
@@ -221,6 +207,94 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
     }
 
     // MARK: - Helper Methods
+
+    private static func generateComprehensiveInitializer(
+        for structDecl: StructDeclSyntax,
+        hasRequestBody: Bool,
+        hasRequestQuery: Bool
+    ) throws -> InitializerDeclSyntax {
+
+        // Collect all stored properties that need to be initialized
+        var parameters: [FunctionParameterSyntax] = []
+        var assignments: [String] = []
+
+        // Scan for all var properties in the struct that need initialization
+        for member in structDecl.memberBlock.members {
+            if let varDecl = member.decl.as(VariableDeclSyntax.self),
+                varDecl.modifiers.contains(where: { $0.name.tokenKind == .keyword(.public) })
+            {
+
+                for binding in varDecl.bindings {
+                    if let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
+                        let typeAnnotation = binding.typeAnnotation
+                    {
+
+                        let propertyName = pattern.identifier.text
+                        let typeName = typeAnnotation.type
+
+                        // Skip properties that have default values
+                        if binding.initializer != nil {
+                            continue
+                        }
+
+                        // Include all properties without default values
+                        if propertyName == "body" {
+                            parameters.append(
+                                FunctionParameterSyntax(
+                                    firstName: .identifier(propertyName),
+                                    type: typeName
+                                )
+                            )
+                            assignments.append("self.\(propertyName) = \(propertyName)")
+                        } else if propertyName == "query" {
+                            // For query properties, make them required
+                            parameters.append(
+                                FunctionParameterSyntax(
+                                    firstName: .identifier(propertyName),
+                                    type: typeName
+                                )
+                            )
+                            assignments.append("self.\(propertyName) = \(propertyName)")
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create the parameter clause
+        let parameterClause: FunctionParameterClauseSyntax
+        if parameters.isEmpty {
+            parameterClause = FunctionParameterClauseSyntax {
+                // Empty parameter list
+            }
+        } else {
+            parameterClause = FunctionParameterClauseSyntax {
+                for parameter in parameters {
+                    parameter
+                }
+            }
+        }
+
+        // Create the body with assignments
+        let bodyStatements = assignments.map { assignment in
+            CodeBlockItemSyntax(
+                item: .expr(ExprSyntax(stringLiteral: assignment))
+            )
+        }
+
+        return InitializerDeclSyntax(
+            modifiers: DeclModifierListSyntax([
+                DeclModifierSyntax(name: .keyword(.public))
+            ]),
+            signature: FunctionSignatureSyntax(
+                parameterClause: parameterClause
+            )
+        ) {
+            for statement in bodyStatements {
+                statement
+            }
+        }
+    }
 
     private static func extractPathAndMethod(from node: AttributeSyntax) throws -> (String, String) {
         guard let arguments = node.arguments?.as(LabeledExprListSyntax.self),

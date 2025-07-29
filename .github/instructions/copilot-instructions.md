@@ -32,7 +32,7 @@ Each endpoint group follows this pattern:
 public protocol SystemEndpointGroupProtocol: EndpointGroup {
     associatedtype Route: RouteKind
     typealias E1 = EP.System.AppConfig
-    func fetchAppConfig(context: RequestContext<Route.Request, E1.RequestQuery, E1.RequestBody>) async throws -> E1.ResponseContent
+    func fetchAppConfig(context: RequestContext<Route.Request, E1.Query, E1.Body>) async throws -> E1.ResponseContent
 }
 ```
 
@@ -41,7 +41,7 @@ public protocol SystemEndpointGroupProtocol: EndpointGroup {
 Handler functions receive a `RequestContext` that wraps the route request with decoded query and body:
 
 ```swift
-RequestContext<Route.Request, E.RequestQuery, E.RequestBody>
+RequestContext<Route.Request, E.Query, E.Body>
 ```
 
 #### 4. Dual Response Types
@@ -76,8 +76,8 @@ public var routes: Routes {
 
 ### Required Associated Types
 
-- `RequestBody: CoSendable` (default: `EmptyCodable`)
-- `RequestQuery: CoSendable` (default: `EmptyCodable`)
+- `Body: CoSendable` (default: `EmptyCodable`)
+- `Query: CoSendable` (default: `EmptyCodable`)
 - `ResponseContent: CoSendable` (default: `EmptyCodable`)
 - `ResponseChunk: CoSendable` (default: `EmptyCodable`)
 

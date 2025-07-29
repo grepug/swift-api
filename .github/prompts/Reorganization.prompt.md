@@ -213,7 +213,7 @@ extension EP.GroupName.EndpointName {
     // MARK: - Request Types
 
     /// Request body description
-    public struct RequestBody: CoSendable {
+    public struct Body: CoSendable {
         // Properties and initializers
     }
 
@@ -367,7 +367,7 @@ extension EP {
         public struct CheckForceUpdate: Endpoint {
 
             // MARK: Properties
-            public var body: RequestBody
+            public var body: Body
 
             // MARK: Endpoint Configuration
             static public var path: String { "/check-force-update" }
@@ -377,7 +377,7 @@ extension EP {
 
             /// Creates a new check force update request
             /// - Parameter body: The request body containing version information
-            public init(body: RequestBody) {
+            public init(body: Body) {
                 self.body = body
             }
         }
@@ -391,7 +391,7 @@ extension EP.System.CheckForceUpdate {
     // MARK: - Request Models
 
     /// Request body for force update check
-    public struct RequestBody: CoSendable {
+    public struct Body: CoSendable {
 
         // MARK: Properties
 

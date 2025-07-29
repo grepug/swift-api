@@ -4,7 +4,8 @@ import SwiftAPICore
 typealias CoSendable = Codable & Sendable & Hashable
 
 extension EP {
-    public enum Words {
+    public enum Words: EndpointGroupNaming {
+        public static let groupName = "words"
     }
 }
 
@@ -14,13 +15,13 @@ public protocol WordsEndpointGroupProtocol: EndpointGroup {
     typealias E1 = EP.Words.FetchSuggestedWords
     @Sendable
     func fetchSuggestedWords(
-        context: RequestContext<Route.Request, E1.RequestQuery, E1.RequestBody>
+        context: RequestContext<Route.Request, E1.Query, E1.Body>
     ) async throws -> E1.ResponseContent
 
     typealias E2 = EP.Words.LookupWord
     @Sendable
     func lookupWord(
-        context: RequestContext<Route.Request, E2.RequestQuery, E2.RequestBody>
+        context: RequestContext<Route.Request, E2.Query, E2.Body>
     ) async throws -> EP.Words.LookupWord.ResponseContent
 }
 
@@ -38,11 +39,9 @@ extension WordsEndpointGroupProtocol {
 extension EP.Words {
     @Endpoint("/words/suggested", .POST)
     public struct FetchSuggestedWords {
-        public struct RequestQuery: CoSendable {
-            public init() {}
-        }
+        public var body: Body
 
-        public struct RequestBody: CoSendable {
+        public struct Body: CoSendable {
             public var text: String
 
             public init(text: String) {
@@ -63,11 +62,9 @@ extension EP.Words {
 extension EP.Words {
     @Endpoint("/words/lookup", .POST)
     public struct LookupWord {
-        public struct RequestQuery: CoSendable {
-            public init() {}
-        }
+        public var body: Body
 
-        public struct RequestBody: CoSendable {
+        public struct Body: CoSendable {
             public var text: String
             public var token: ContextModel.TokenItem
 

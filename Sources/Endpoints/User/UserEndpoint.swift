@@ -16,7 +16,7 @@ public protocol UserEndpointGroupProtocol: EndpointGroup {
 
     typealias E1 = EP.User.FetchFreeFeature
     func fetchUserRequestFreeFeature(
-        context: RequestContext<Route.Request, E1.RequestQuery, E1.RequestBody>
+        context: RequestContext<Route.Request, E1.Query, E1.Body>
     ) async throws -> E1.ResponseContent
 }
 

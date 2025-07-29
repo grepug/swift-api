@@ -28,24 +28,24 @@ public struct EmptyCodable: CoSendable {
 }
 
 public protocol Endpoint: Sendable {
-    associatedtype RequestBody: CoSendable = EmptyCodable
-    associatedtype RequestQuery: CoSendable = EmptyCodable
+    associatedtype Body: CoSendable = EmptyCodable
+    associatedtype Query: CoSendable = EmptyCodable
     associatedtype ResponseChunk: CoSendable = EmptyCodable
     associatedtype ResponseContent: CoSendable = EmptyCodable
 
     static var path: String { get }
     static var method: EndpointMethod { get }
 
-    var body: RequestBody { get }
-    var query: RequestQuery { get }
+    var body: Body { get }
+    var query: Query { get }
 }
 
-extension Endpoint where RequestBody == EmptyCodable {
-    public var body: RequestBody { EmptyCodable() }
+extension Endpoint where Body == EmptyCodable {
+    public var body: Body { EmptyCodable() }
 }
 
-extension Endpoint where RequestQuery == EmptyCodable {
-    public var query: RequestQuery { EmptyCodable() }
+extension Endpoint where Query == EmptyCodable {
+    public var query: Query { EmptyCodable() }
 }
 
 extension Endpoint where ResponseChunk == EmptyCodable {

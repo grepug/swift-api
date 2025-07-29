@@ -27,7 +27,7 @@ struct PerformanceTests {
         @Test("RequestContext creation performance")
         func requestContextCreationPerformance() throws {
             let request = MockRequest()
-            let body = MockPostEndpoint.RequestBody(data: "test")
+            let body = MockPostEndpoint.Body(data: "test")
 
             let startTime = CFAbsoluteTimeGetCurrent()
 
@@ -138,7 +138,7 @@ struct PerformanceTests {
             // Note: Since RequestContext is a struct, we test creation efficiency instead of deallocation
 
             let request = MockRequest()
-            let body = MockPostEndpoint.RequestBody(data: "memory test")
+            let body = MockPostEndpoint.Body(data: "memory test")
 
             for _ in 0..<1000 {
                 let context = RequestContext(

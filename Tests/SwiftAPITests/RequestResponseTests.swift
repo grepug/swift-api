@@ -17,11 +17,11 @@ struct RequestResponseTests {
 
         @Test("Request body decoding with valid data")
         func requestBodyDecodingWithValidData() throws {
-            let originalBody = MockPostEndpoint.RequestBody(data: "test content")
+            let originalBody = MockPostEndpoint.Body(data: "test content")
             let bodyData = try JSONEncoder().encode(originalBody)
             let request = MockRequest(bodyData: bodyData)
 
-            let decodedBody = try request.decodedRequestBody(MockPostEndpoint.RequestBody.self)
+            let decodedBody = try request.decodedRequestBody(MockPostEndpoint.Body.self)
             #expect(decodedBody.data == "test content")
         }
 

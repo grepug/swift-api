@@ -33,15 +33,15 @@ extension RouteKind {
 
     public func block<E>(
         _ endpoint: E.Type,
-        handler: @escaping @Sendable (_ context: RequestContext<Request, E.RequestQuery, E.RequestBody>) async throws -> E.ResponseContent
+        handler: @escaping @Sendable (_ context: RequestContext<Request, E.Query, E.Body>) async throws -> E.ResponseContent
     ) -> Self where E: Endpoint, E.ResponseChunk == EmptyCodable {
         var me = self
         me.path = E.path
         me.method = E.method
 
         me.handler = { req in
-            let query = E.RequestQuery.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestQuery : try req.decodedRequestQuery(E.RequestQuery.self)
-            let body = E.RequestBody.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestBody : try req.decodedRequestBody(E.RequestBody.self)
+            let query = E.Query.self is EmptyCodable.Type ? EmptyCodable() as! E.Query : try req.decodedRequestQuery(E.Query.self)
+            let body = E.Body.self is EmptyCodable.Type ? EmptyCodable() as! E.Body : try req.decodedRequestBody(E.Body.self)
 
             let context = RequestContext(
                 request: req,
@@ -59,15 +59,15 @@ extension RouteKind {
 
     public func stream<E, S>(
         _ endpoint: E.Type,
-        handler: @escaping @Sendable (_ context: RequestContext<Request, E.RequestQuery, E.RequestBody>) async throws -> S
+        handler: @escaping @Sendable (_ context: RequestContext<Request, E.Query, E.Body>) async throws -> S
     ) -> Self where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
         var me = self
         me.path = E.path
         me.method = E.method
 
         me.handler = { req in
-            let query = E.RequestQuery.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestQuery : try req.decodedRequestQuery(E.RequestQuery.self)
-            let body = E.RequestBody.self is EmptyCodable.Type ? EmptyCodable() as! E.RequestBody : try req.decodedRequestBody(E.RequestBody.self)
+            let query = E.Query.self is EmptyCodable.Type ? EmptyCodable() as! E.Query : try req.decodedRequestQuery(E.Query.self)
+            let body = E.Body.self is EmptyCodable.Type ? EmptyCodable() as! E.Body : try req.decodedRequestBody(E.Body.self)
 
             let context = RequestContext(
                 request: req,

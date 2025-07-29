@@ -4,9 +4,9 @@ import SwiftAPICore
 extension EP.User {
     @Endpoint("/user/check-feature-availability", .GET)
     public struct FetchFreeFeature {
-        public var query: RequestQuery
+        public var query: Query
 
-        public init(query: RequestQuery) {
+        public init(query: Query) {
             self.query = query
         }
     }
@@ -48,7 +48,7 @@ extension EP.User.FetchFreeFeature {
         public init() {}
     }
 
-    public struct RequestQuery: CoSendable {
+    public struct Query: CoSendable {
         public enum StringBool: String, CoSendable {
             case `true`
             case `false`

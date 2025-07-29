@@ -5,7 +5,7 @@ public protocol SystemEndpointGroupProtocol: EndpointGroup {
 
     typealias E1 = EP.System.AppConfig
     func fetchAppConfig(
-        context: RequestContext<Route.Request, E1.RequestQuery, E1.RequestBody>
+        context: RequestContext<Route.Request, E1.Query, E1.Body>
     ) async throws -> E1.ResponseContent
 }
 
@@ -22,31 +22,25 @@ extension EP {
 
         @Endpoint("/system/app-config", .GET)
         public struct AppConfig {
-            public var query: RequestQuery
+            public var query: Query
 
-            public init(query: RequestQuery) {
-                self.query = query
+            public struct Query: CoSendable {
+                public var appBuild: String
+
+                public init(appBuild: String) {
+                    self.appBuild = appBuild
+                }
             }
-        }
-    }
-}
 
-extension EP.System.AppConfig {
-    public struct RequestQuery: CoSendable {
-        public var appBuild: String
+            public struct ResponseContent: CoSendable {
+                public var forceUpdate: Bool
+                public var appReviewMode: Bool
 
-        public init(appBuild: String) {
-            self.appBuild = appBuild
-        }
-    }
-
-    public struct ResponseContent: CoSendable {
-        public var forceUpdate: Bool
-        public var appReviewMode: Bool
-
-        public init(forceUpdate: Bool, appReviewMode: Bool) {
-            self.forceUpdate = forceUpdate
-            self.appReviewMode = appReviewMode
+                public init(forceUpdate: Bool, appReviewMode: Bool) {
+                    self.forceUpdate = forceUpdate
+                    self.appReviewMode = appReviewMode
+                }
+            }
         }
     }
 }

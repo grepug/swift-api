@@ -14,7 +14,7 @@ struct EdgeCaseTests {
             let request = MockRequest(bodyData: invalidData)
 
             #expect(throws: Error.self) {
-                try request.decodedRequestBody(MockPostEndpoint.RequestBody.self)
+                try request.decodedRequestBody(MockPostEndpoint.Body.self)
             }
         }
 
