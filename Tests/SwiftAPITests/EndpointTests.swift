@@ -39,6 +39,47 @@ struct EndpointTests {
             let decoded = try JSONDecoder().decode(EmptyCodable.self, from: encoded)
             #expect(decoded == empty)
         }
+
+        @Test("EmptyCodable method overload resolution")
+        func emptyCodableMethodOverloadResolution() throws {
+            // Test that EmptyCodable-specific methods are called instead of generic ones
+            // We'll use invalid JSON data to differentiate the behavior:
+            // - Generic method would try to decode and throw an error
+            // - EmptyCodable-specific method always returns EmptyCodable() regardless of data
+
+            let invalidJsonData = "invalid json".data(using: .utf8)!
+            let requestWithInvalidData = MockRequest(
+                bodyData: invalidJsonData,
+                queryData: invalidJsonData
+            )
+
+            // If the generic CoSendable method were called, it would try to decode the invalid JSON
+            // and throw an error. If the EmptyCodable-specific method is called, it should
+            // return EmptyCodable() without attempting to decode.
+
+            // This should call the EmptyCodable-specific overload and NOT throw
+            let decodedBody = try requestWithInvalidData.decodedRequestBody(EmptyCodable.self)
+            #expect(decodedBody == EmptyCodable())
+
+            // This should call the EmptyCodable-specific overload and NOT throw
+            let decodedQuery = try requestWithInvalidData.decodedRequestQuery(EmptyCodable.self)
+            #expect(decodedQuery == EmptyCodable())
+
+            // For comparison, let's verify that the generic method WOULD throw with invalid JSON
+            // by testing with a different CoSendable type
+            struct TestType: CoSendable {
+                let value: String
+            }
+
+            // This should use the generic method and throw because of invalid JSON
+            #expect(throws: (any Error).self) {
+                _ = try requestWithInvalidData.decodedRequestBody(TestType.self)
+            }
+
+            #expect(throws: (any Error).self) {
+                _ = try requestWithInvalidData.decodedRequestQuery(TestType.self)
+            }
+        }
     }
 
     @Suite("Container Types")

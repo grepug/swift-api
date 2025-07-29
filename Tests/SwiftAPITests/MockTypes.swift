@@ -82,6 +82,7 @@ struct MockRequest: RouteRequestKind {
         guard let data = bodyData else {
             return EmptyCodable() as! T
         }
+
         return try JSONDecoder().decode(T.self, from: data)
     }
 
@@ -89,6 +90,7 @@ struct MockRequest: RouteRequestKind {
         guard let data = queryData else {
             return EmptyCodable() as! T
         }
+
         return try JSONDecoder().decode(T.self, from: data)
     }
 

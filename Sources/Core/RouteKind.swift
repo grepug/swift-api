@@ -81,6 +81,16 @@ public protocol RouteRequestKind: Sendable {
     func decodedRequestQuery<T: CoSendable>(_ type: T.Type) throws -> T
 }
 
+extension RouteRequestKind {
+    public func decodedRequestBody(_ type: EmptyCodable.Type) throws -> EmptyCodable {
+        EmptyCodable()
+    }
+
+    public func decodedRequestQuery(_ type: EmptyCodable.Type) throws -> EmptyCodable {
+        EmptyCodable()
+    }
+}
+
 public protocol RouteResponseKind {
     static func fromCodable<T>(_ codable: T) -> Self where T: CoSendable
     static func fromStream<S: AsyncSequence>(_ stream: S) -> Self where S.Element: CoSendable
