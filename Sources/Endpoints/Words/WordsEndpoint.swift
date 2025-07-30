@@ -34,8 +34,12 @@ extension WordsEndpointGroupProtocol {
     }
 }
 
-extension EP.Words {
-    @Endpoint("/words/suggested", .POST)
+extension EP.Words: EndpointGroupNamespace {
+    public static var name: String {
+        "words"
+    }
+
+    @Endpoint("suggested", .POST)
     public struct FetchSuggestedWords {
         public var body: Body
 
@@ -52,7 +56,7 @@ extension EP.Words {
 }
 
 extension EP.Words {
-    @Endpoint("/words/lookup", .POST)
+    @Endpoint("lookup", .POST)
     public struct LookupWord {
         public var body: Body
 

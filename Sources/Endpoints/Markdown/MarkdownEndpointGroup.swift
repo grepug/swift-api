@@ -69,40 +69,39 @@ extension MarkdownEndpointGroupProtocol {
     @RouteBuilder
     public var routes: Routes {
         Route()
-            .stream(EP.Markdown.CreateMarkdown.self, handler: createMarkdown)
+            .stream(E1.self, handler: createMarkdown)
 
         Route()
-            .block(EP.Markdown.CreateMarkdownV2.self, handler: createMarkdownV2)
+            .block(E2.self, handler: createMarkdownV2)
+    }
+}
+
+extension EP {
+    /// Namespace for markdown processing endpoints
+    public enum Markdown: EndpointGroupNamespace {
+        public static var name: String {
+            "markdown"
+        }
     }
 }
 
 // MARK: - Endpoint Definitions
 
-extension EP {
+extension EP.Markdown {
 
     /// Markdown processing endpoints namespace
-    public enum Markdown {
 
-        // MARK: - CreateMarkdown Endpoint
+    // MARK: - CreateMarkdown Endpoint
 
-        /// Endpoint for streaming markdown creation from text
-        ///
-        /// This endpoint processes text from various sources and streams back
-        /// markdown content as it's generated, allowing for real-time processing.
-        @Endpoint("/markdown/create", .POST)
-        public struct CreateMarkdown {
+    /// Endpoint for streaming markdown creation from text
+    ///
+    /// This endpoint processes text from various sources and streams back
+    /// markdown content as it's generated, allowing for real-time processing.
+    @Endpoint("create", .POST)
+    public struct CreateMarkdown {
 
-            // MARK: Properties
-            public var body: Body
-
-            // MARK: Initialization
-
-            /// Creates a new markdown creation request
-            /// - Parameter body: The request body containing text data
-            public init(body: Body) {
-                self.body = body
-            }
-        }
+        // MARK: Properties
+        public var body: Body
     }
 }
 
@@ -114,17 +113,11 @@ extension EP.Markdown {
     ///
     /// This endpoint processes text and returns the complete markdown
     /// content in a single response, suitable for smaller text inputs.
-    @Endpoint("/markdown/create_v2", .POST)
+    @Endpoint("create_v2", .POST)
     public struct CreateMarkdownV2 {
 
         // MARK: Properties
         public var body: Body
-
-        /// Creates a new markdown creation request (V2)
-        /// - Parameter body: The request body containing text data
-        public init(body: Body) {
-            self.body = body
-        }
     }
 }
 
@@ -171,14 +164,6 @@ extension EP.Markdown.CreateMarkdown {
 
         /// Generated markdown content chunk
         public var markdown: String
-
-        // MARK: Initialization
-
-        /// Creates a new response chunk
-        /// - Parameter markdown: The markdown content chunk
-        public init(markdown: String) {
-            self.markdown = markdown
-        }
     }
 }
 
@@ -196,14 +181,6 @@ extension EP.Markdown.CreateMarkdownV2 {
 
         /// Array of text content to convert
         public var texts: [String]
-
-        // MARK: Initialization
-
-        /// Creates a new request body (V2)
-        /// - Parameter texts: Array of text content to process
-        public init(texts: [String]) {
-            self.texts = texts
-        }
     }
 
     // MARK: - Response Types
@@ -216,13 +193,5 @@ extension EP.Markdown.CreateMarkdownV2 {
 
         /// Generated markdown content
         public var markdown: String
-
-        // MARK: Initialization
-
-        /// Creates a new response content
-        /// - Parameter markdown: The complete markdown content
-        public init(markdown: String) {
-            self.markdown = markdown
-        }
     }
 }

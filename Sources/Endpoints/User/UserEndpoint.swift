@@ -7,8 +7,17 @@
 
 import SwiftAPICore
 
+public protocol EndpointGroupNamespace {
+    /// The name of the endpoint group
+    static var name: String { get }
+}
+
 public enum EP {
-    public enum User {}
+    public enum User: EndpointGroupNamespace {
+        public static var name: String {
+            "user"
+        }
+    }
 }
 
 public protocol UserEndpointGroupProtocol: EndpointGroup {
@@ -24,6 +33,6 @@ extension UserEndpointGroupProtocol {
     @RouteBuilder
     public var routes: Routes {
         Route()
-            .block(EP.User.FetchFreeFeature.self, handler: fetchUserRequestFreeFeature)
+            .block(E1.self, handler: fetchUserRequestFreeFeature)
     }
 }

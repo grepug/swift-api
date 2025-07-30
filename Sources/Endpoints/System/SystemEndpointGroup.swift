@@ -2,8 +2,9 @@ import SwiftAPICore
 
 public protocol SystemEndpointGroupProtocol: EndpointGroup {
     associatedtype Route: RouteKind
-
-    typealias E1 = EP.System.AppConfig
+    typealias NS = EP.System
+    typealias E1 = NS.AppConfig
+    
     func fetchAppConfig(
         context: RequestContext<Route.Request, E1.Query, E1.Body>
     ) async throws -> E1.ResponseContent
@@ -13,27 +14,32 @@ extension SystemEndpointGroupProtocol {
     @RouteBuilder
     public var routes: Routes {
         Route()
-            .block(EP.System.AppConfig.self, handler: fetchAppConfig)
+            .block(E1.self, handler: fetchAppConfig)
     }
 }
 
 extension EP {
-    public enum System {
+    public enum System: EndpointGroupNamespace {
+        public static var name: String {
+            "system"
+        }
+    }
+}
 
-        @Endpoint("/system/app-config", .GET)
-        public struct AppConfig {
-            public var query: Query
+extension EP.System {
+    @Endpoint("app-config", .GET)
+    public struct AppConfig {
+        public var query: Query
 
-            @DTO
-            public struct Query {
-                public var appBuild: String
-            }
+        @DTO
+        public struct Query {
+            public var appBuild: String
+        }
 
-            @DTO
-            public struct ResponseContent {
-                public var forceUpdate: Bool
-                public var appReviewMode: Bool
-            }
+        @DTO
+        public struct ResponseContent {
+            public var forceUpdate: Bool
+            public var appReviewMode: Bool
         }
     }
 }

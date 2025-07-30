@@ -52,21 +52,6 @@ import Foundation
 @attached(member, names: arbitrary)
 public macro Endpoint(_ path: String, _ method: EndpointMethod) = #externalMacro(module: "Macros", type: "EndpointMacro")
 
-/// A macro that modifies endpoint paths by prepending a group name.
-///
-/// This macro can be applied to enums to add a static groupName property,
-/// or to extensions to modify the path of all Endpoint types within.
-///
-/// Usage:
-/// ```swift
-/// @EndpointGroup("words")
-/// extension EP.Words {
-///     // All endpoints in this extension will have "/words" prepended to their paths
-/// }
-/// ```
-@attached(peer)
-public macro EndpointGroup(_ name: String) = #externalMacro(module: "Macros", type: "EndpointGroupMacro")
-
 /// A macro that automatically makes a struct or enum conform to common DTO protocols and generates initializers.
 ///
 /// This macro automatically adds conformance to Hashable, Codable, and Sendable protocols.

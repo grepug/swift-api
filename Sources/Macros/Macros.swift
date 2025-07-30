@@ -48,11 +48,14 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
     ) throws -> [DeclSyntax] {
 
         // Extract path and method from macro arguments
-        let (path, method) = try extractPathAndMethod(from: node)
+        let (rawPath, method) = try extractPathAndMethod(from: node)
 
         guard let structDecl = declaration.as(StructDeclSyntax.self) else {
             throw MacroError.notAppliedToStruct
         }
+
+        // Try to detect enclosing type and auto-prefix path if it conforms to EndpointGroupNamespace
+        let finalPath = try resolveFinalPath(rawPath: rawPath, structDecl: structDecl, context: context)
 
         var members: [DeclSyntax] = []
 
@@ -75,7 +78,7 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
                 accessorBlock: AccessorBlockSyntax(
                     accessors: .getter([
                         CodeBlockItemSyntax(
-                            item: .expr(ExprSyntax(StringLiteralExprSyntax(content: path)))
+                            item: .expr(ExprSyntax(StringLiteralExprSyntax(content: finalPath)))
                         )
                     ]))
             )
@@ -373,6 +376,51 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
         return (path, method)
     }
 
+    // MARK: - Path Resolution with EndpointGroupNamespace
+
+    private static func resolveFinalPath(
+        rawPath: String,
+        structDecl: StructDeclSyntax,
+        context: some MacroExpansionContext
+    ) throws -> String {
+        // If path already starts with "/", return as-is
+        if rawPath.hasPrefix("/") {
+            return rawPath
+        }
+
+        // Try to detect the group name from the enclosing context
+        // Look for patterns like EP.User.StructName or similar
+        if let groupName = extractGroupNameFromContext(context: context) {
+            return "/\(groupName)/\(rawPath)"
+        }
+
+        // If no group detected, ensure path starts with "/"
+        return "/\(rawPath)"
+    }
+
+    private static func extractGroupNameFromContext(context: some MacroExpansionContext) -> String? {
+        // Try to extract group name from the lexical context
+        // This is a best-effort approach since macro context is limited
+
+        // Look through the lexical context for extension declarations
+        for contextNode in context.lexicalContext {
+            if let extensionDecl = contextNode.as(ExtensionDeclSyntax.self) {
+                // Check if this is an extension of something like EP.User
+                if let memberType = extensionDecl.extendedType.as(MemberTypeSyntax.self) {
+                    // Pattern: EP.User -> extract "user"
+                    if let baseType = memberType.baseType.as(IdentifierTypeSyntax.self),
+                        baseType.name.text == "EP"
+                    {
+                        let groupType = memberType.name.text
+                        return groupType.lowercased()  // Convert "User" to "user"
+                    }
+                }
+            }
+        }
+
+        return nil
+    }
+
     // MARK: - DTO Integration Helper Methods
 
     private static func shouldApplyDTOToNestedType(_ typeName: String) -> Bool {
@@ -470,190 +518,6 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
         }
 
         return initializerExtension
-    }
-}
-
-/// Implementation of the `@EndpointGroup` macro, which modifies endpoint paths
-/// by prepending a group name to all Endpoint types in an extension.
-public struct EndpointGroupMacro: PeerMacro {
-
-    public static func expansion(
-        of node: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in context: some MacroExpansionContext
-    ) throws -> [DeclSyntax] {
-
-        // Extract the group name from the macro arguments
-        guard let groupName = extractGroupName(from: node) else {
-            throw MacroError.missingGroupName
-        }
-
-        // For enum declarations, add a static groupName property
-        if let enumDecl = declaration.as(EnumDeclSyntax.self) {
-            let enumName = enumDecl.name.text
-
-            // Create an extension that adds the groupName property
-            let groupNameExtension = ExtensionDeclSyntax(
-                extendedType: IdentifierTypeSyntax(name: .identifier("EP.\(enumName)"))
-            ) {
-                VariableDeclSyntax(
-                    modifiers: DeclModifierListSyntax([
-                        DeclModifierSyntax(name: .keyword(.public)),
-                        DeclModifierSyntax(name: .keyword(.static)),
-                    ]),
-                    bindingSpecifier: .keyword(.var)
-                ) {
-                    PatternBindingSyntax(
-                        pattern: IdentifierPatternSyntax(identifier: .identifier("groupName")),
-                        typeAnnotation: TypeAnnotationSyntax(
-                            type: IdentifierTypeSyntax(name: .identifier("String"))
-                        ),
-                        initializer: InitializerClauseSyntax(
-                            value: StringLiteralExprSyntax(content: groupName)
-                        )
-                    )
-                }
-            }
-
-            return [DeclSyntax(groupNameExtension)]
-        }
-
-        // For extension declarations, we'll generate the path modifications
-        if let extensionDecl = declaration.as(ExtensionDeclSyntax.self) {
-            var peerDeclarations: [DeclSyntax] = []
-
-            // Find all struct declarations that conform to Endpoint and create path modifications
-            for member in extensionDecl.memberBlock.members {
-                if let structDecl = member.decl.as(StructDeclSyntax.self),
-                    structConformsToEndpoint(structDecl)
-                {
-
-                    let structName = structDecl.name.text
-
-                    // Find the original path value from the struct
-                    let originalPath = extractOriginalPath(from: structDecl) ?? "/unknown"
-                    let modifiedPath = buildGroupedPath(originalPath: originalPath, groupName: groupName)
-
-                    // Get the full type name for the extension
-                    let fullTypeName: String
-                    if let memberAccess = extensionDecl.extendedType.as(MemberTypeSyntax.self) {
-                        // Handle EP.Words format
-                        fullTypeName = "\(memberAccess.baseType).\(memberAccess.name).\(structName)"
-                    } else if let identifier = extensionDecl.extendedType.as(IdentifierTypeSyntax.self) {
-                        // Handle simple identifier format
-                        fullTypeName = "\(identifier.name).\(structName)"
-                    } else {
-                        fullTypeName = "EP.Words.\(structName)"  // fallback
-                    }
-
-                    // Create an extension that overrides the path property
-                    let pathExtension = ExtensionDeclSyntax(
-                        extendedType: IdentifierTypeSyntax(name: .identifier(fullTypeName))
-                    ) {
-                        // Override the static path property
-                        VariableDeclSyntax(
-                            modifiers: DeclModifierListSyntax([
-                                DeclModifierSyntax(name: .keyword(.public)),
-                                DeclModifierSyntax(name: .keyword(.static)),
-                            ]),
-                            bindingSpecifier: .keyword(.var)
-                        ) {
-                            PatternBindingSyntax(
-                                pattern: IdentifierPatternSyntax(identifier: .identifier("path")),
-                                typeAnnotation: TypeAnnotationSyntax(
-                                    type: IdentifierTypeSyntax(name: .identifier("String"))
-                                ),
-                                accessorBlock: AccessorBlockSyntax(
-                                    accessors: .getter([
-                                        CodeBlockItemSyntax(
-                                            item: .expr(ExprSyntax(StringLiteralExprSyntax(content: modifiedPath)))
-                                        )
-                                    ]))
-                            )
-                        }
-                    }
-
-                    peerDeclarations.append(DeclSyntax(pathExtension))
-                }
-            }
-
-            return peerDeclarations
-        }
-
-        return []
-    }
-
-    // MARK: - Helper Methods
-
-    private static func extractGroupName(from node: AttributeSyntax) -> String? {
-        guard let arguments = node.arguments?.as(LabeledExprListSyntax.self),
-            let firstArg = arguments.first?.expression.as(StringLiteralExprSyntax.self)
-        else {
-            return nil
-        }
-
-        return firstArg.segments.first?.as(StringSegmentSyntax.self)?.content.text
-    }
-
-    private static func structConformsToEndpoint(_ structDecl: StructDeclSyntax) -> Bool {
-        return structDecl.inheritanceClause?.inheritedTypes.contains { inherited in
-            inherited.type.as(IdentifierTypeSyntax.self)?.name.text == "Endpoint"
-        } ?? false
-    }
-
-    private static func extractOriginalPath(from structDecl: StructDeclSyntax) -> String? {
-        // Look for the static var path property
-        for member in structDecl.memberBlock.members {
-            if let varDecl = member.decl.as(VariableDeclSyntax.self),
-                let binding = varDecl.bindings.first,
-                let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
-                pattern.identifier.text == "path"
-            {
-
-                // Extract the string literal value
-                if let initializer = binding.initializer,
-                    let stringLiteral = initializer.value.as(StringLiteralExprSyntax.self),
-                    let segment = stringLiteral.segments.first?.as(StringSegmentSyntax.self)
-                {
-                    return segment.content.text
-                }
-
-                // Handle getter syntax
-                if let accessorBlock = binding.accessorBlock,
-                    case .getter(let getterItems) = accessorBlock.accessors
-                {
-                    for item in getterItems {
-                        if let expr = item.item.as(ExprSyntax.self),
-                            let stringLiteral = expr.as(StringLiteralExprSyntax.self),
-                            let segment = stringLiteral.segments.first?.as(StringSegmentSyntax.self)
-                        {
-                            return segment.content.text
-                        }
-                    }
-                }
-            }
-        }
-        return nil
-    }
-
-    private static func buildGroupedPath(originalPath: String, groupName: String) -> String {
-        // Ensure we don't double-add group names
-        if originalPath.hasPrefix("/\(groupName)/") {
-            return originalPath
-        }
-
-        // Handle root path
-        if originalPath == "/" {
-            return "/\(groupName)"
-        }
-
-        // Handle paths that start with /
-        if originalPath.hasPrefix("/") {
-            return "/\(groupName)\(originalPath)"
-        }
-
-        // Handle paths that don't start with /
-        return "/\(groupName)/\(originalPath)"
     }
 }
 
@@ -831,7 +695,6 @@ private func generateDTOInitializer(for structDecl: StructDeclSyntax) throws -> 
 // MARK: - Macro Error
 
 enum MacroError: Error, CustomStringConvertible {
-    case missingGroupName
     case notAppliedToStruct
     case notAppliedToSupportedType
     case invalidArguments
@@ -840,8 +703,6 @@ enum MacroError: Error, CustomStringConvertible {
 
     var description: String {
         switch self {
-        case .missingGroupName:
-            return "@EndpointGroup macro requires a 'name' parameter"
         case .notAppliedToStruct:
             return "@Endpoint macro can only be applied to struct declarations"
         case .notAppliedToSupportedType:

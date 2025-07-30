@@ -1,9 +1,8 @@
 import Foundation
 import SwiftAPICore
 
-@EndpointGroup("user")
 extension EP.User {
-    @Endpoint("/user/check-feature-availability", .GET)
+    @Endpoint("check-feature-availability", .GET)
     public struct FetchFreeFeature {
         public var query: Query
     }
