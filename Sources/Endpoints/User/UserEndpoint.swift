@@ -13,12 +13,9 @@ public enum EP {
 }
 
 public protocol UserEndpointGroupProtocol: EndpointGroupProtocol {
-    associatedtype Route: RouteKind
-
     typealias E1 = EP.User.FetchFreeFeature
-    func fetchUserRequestFreeFeature(
-        context: RequestContext<Route.Request, E1.Query, E1.Body>
-    ) async throws -> E1.Content
+
+    func fetchUserRequestFreeFeature(context: Context<E1>) async throws -> E1.Content
 }
 
 extension UserEndpointGroupProtocol {

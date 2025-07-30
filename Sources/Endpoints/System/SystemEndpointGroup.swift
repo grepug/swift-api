@@ -1,13 +1,9 @@
 import SwiftAPICore
 
 public protocol SystemEndpointGroupProtocol: EndpointGroupProtocol {
-    associatedtype Route: RouteKind
-    typealias NS = EP.System
-    typealias E1 = NS.AppConfig
+    typealias E1 = EP.System.AppConfig
 
-    func fetchAppConfig(
-        context: RequestContext<Route.Request, E1.Query, E1.Body>
-    ) async throws -> E1.Content
+    func fetchAppConfig(context: Context<E1>) async throws -> E1.Content
 }
 
 extension SystemEndpointGroupProtocol {

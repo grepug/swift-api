@@ -5,6 +5,10 @@ public protocol EndpointGroup {
 }
 
 public protocol EndpointGroupProtocol: Sendable {
+    associatedtype Route: RouteKind
+
+    typealias Context<T: Endpoint> = RequestContext<Route.Request, T.Query, T.Body>
+    /// The type of route handled by this endpoint group
     @RouteBuilder
     var routes: Routes { get }
 

@@ -25,12 +25,10 @@ import SwiftAPICore
 /// This protocol establishes the contract for markdown processing endpoints that handle
 /// text-to-markdown conversion with support for streaming and block responses.
 public protocol MarkdownEndpointGroupProtocol: EndpointGroupProtocol {
-    associatedtype Route: RouteKind
-
     // MARK: Type Aliases
     typealias E1 = EP.Markdown.CreateMarkdown
     typealias E2 = EP.Markdown.CreateMarkdownV2
-    associatedtype S1: AsyncSequence where S1.Element == E1.Chunk
+    associatedtype S1: AsyncSequence where S1.Element == E1.Chunk, S1: Sendable
 
     // MARK: Required Methods
 

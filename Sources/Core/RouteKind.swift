@@ -49,7 +49,9 @@ extension RouteKind {
                 body: body,
             )
 
-            let result = try await handler(context)
+            let result = try await req.injectedDependency {
+                try await handler(context)
+            }
 
             return Response.fromCodable(result)
         }
@@ -60,7 +62,7 @@ extension RouteKind {
     public func stream<E, S>(
         _ endpoint: E.Type,
         _ handler: @escaping @Sendable (_ context: RequestContext<Request, E.Query, E.Body>) async throws -> S
-    ) -> Self where E: Endpoint, S: AsyncSequence, E.Chunk == S.Element {
+    ) -> Self where E: Endpoint, S: AsyncSequence, E.Chunk == S.Element, S: Sendable {
         var me = self
         me.path = E.path
         me.method = E.method
@@ -74,7 +76,11 @@ extension RouteKind {
                 query: query,
                 body: body
             )
-            let result = try await handler(context)
+
+            let result = try await req.injectedDependency {
+                try await handler(context)
+            }
+
             return Response.fromStream(result)
         }
 
@@ -87,6 +93,8 @@ public protocol RouteRequestKind: Sendable {
 
     func decodedRequestBody<T: CoSendable>(_ type: T.Type) throws -> T
     func decodedRequestQuery<T: CoSendable>(_ type: T.Type) throws -> T
+
+    func injectedDependency<T>(_ handler: @escaping () async throws -> T) async rethrows -> T where T: Sendable
 }
 
 public protocol RouteResponseKind {
