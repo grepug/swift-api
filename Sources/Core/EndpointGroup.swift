@@ -1,4 +1,4 @@
-public protocol EndpointGroup: Sendable {
+public protocol EndpointGroupProtocol: Sendable {
     @RouteBuilder
     var routes: Routes { get }
 
@@ -6,7 +6,7 @@ public protocol EndpointGroup: Sendable {
     var additionalRoutes: Routes { get }
 }
 
-extension EndpointGroup {
+extension EndpointGroupProtocol {
     public var finalRoutes: Routes {
         routes + additionalRoutes
     }

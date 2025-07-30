@@ -125,9 +125,9 @@ struct MockResponse: RouteResponseKind {
     }
 }
 
-// MARK: - Mock EndpointGroup
+// MARK: - Mock EndpointGroupProtocol
 
-struct MockEndpointGroup: EndpointGroup {
+struct MockEndpointGroup: EndpointGroupProtocol {
     let testRoutes: [any RouteKind]
     let testAdditionalRoutes: [any RouteKind]
 
@@ -451,7 +451,7 @@ struct RequestResponseTests {
 ### 5. Endpoint Group Suite (`EndpointGroupTests`)
 
 ```swift
-@Suite("EndpointGroup Protocol Tests")
+@Suite("EndpointGroupProtocol Protocol Tests")
 struct EndpointGroupTests {
 
     @Suite("Route Management")
@@ -518,7 +518,7 @@ struct EndpointGroupTests {
 struct RouteGroupTests {
 
     // Note: RouteGroup is a simple protocol with only routes and path properties
-    // Most functionality is already tested through RouteBuilder and EndpointGroup tests
+    // Most functionality is already tested through RouteBuilder and EndpointGroupProtocol tests
 
     @Suite("Basic Implementation")
     struct BasicImplementationTests {
@@ -580,9 +580,9 @@ struct IntegrationTests {
             #expect(mockGroup.finalRoutes[0].method == .POST)
         }
 
-        @Test("RouteBuilder with EndpointGroup integration")
+        @Test("RouteBuilder with EndpointGroupProtocol integration")
         func routeBuilderWithEndpointGroupIntegration() {
-            // Test that @RouteBuilder works properly in EndpointGroup context
+            // Test that @RouteBuilder works properly in EndpointGroupProtocol context
             let routes = [MockRoute(), MockRoute()]
             let additionalRoutes = [MockRoute()]
 
@@ -673,7 +673,7 @@ struct IntegrationTests {
 - **Priority**: Medium
 - **Focus**: Cross-component interactions and real workflow testing
 - **Deliverables**:
-  - EndpointGroup route management tests
+  - EndpointGroupProtocol route management tests
   - End-to-end workflow integration tests
   - Async stream endpoint functionality validation
 

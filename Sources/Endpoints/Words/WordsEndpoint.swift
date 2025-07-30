@@ -7,7 +7,7 @@ extension EP {
     }
 }
 
-public protocol WordsEndpointGroupProtocol: EndpointGroup {
+public protocol WordsEndpointGroupProtocol: EndpointGroupProtocol {
     associatedtype Route: RouteKind
 
     typealias E1 = EP.Words.FetchSuggestedWords
@@ -34,7 +34,7 @@ extension WordsEndpointGroupProtocol {
     }
 }
 
-extension EP.Words: EndpointGroupNamespace {
+extension EP.Words: EndpointGroup {
     public static var name: String {
         "words"
     }

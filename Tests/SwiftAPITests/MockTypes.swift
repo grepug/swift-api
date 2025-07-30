@@ -121,16 +121,16 @@ struct MockResponse: RouteResponseKind, @unchecked Sendable {
     }
 }
 
-// MARK: - Mock EndpointGroup
+// MARK: - Mock EndpointGroupProtocol
 
-struct MockEndpointGroup: EndpointGroup {
+struct MockEndpointGroup: EndpointGroupProtocol {
     @RouteBuilder
     var routes: Routes {
         // Empty by default - individual tests can create specific mock groups
     }
 }
 
-struct MockEndpointGroupWithRoutes: EndpointGroup {
+struct MockEndpointGroupWithRoutes: EndpointGroupProtocol {
     let mockRoute: MockRoute
 
     @RouteBuilder

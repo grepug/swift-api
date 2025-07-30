@@ -172,7 +172,7 @@ For API endpoints, follow this structure:
 // MARK: - Endpoint Protocol
 
 /// Protocol defining the endpoint group behavior
-public protocol EndpointGroupProtocol: EndpointGroup {
+public protocol EndpointGroupProtocol: EndpointGroupProtocol {
     // Protocol definition
 }
 
@@ -316,7 +316,7 @@ import SwiftAPICore
 ///
 /// This protocol establishes the contract for system-level endpoints that handle
 /// application configuration, version checking, and system status operations.
-public protocol SystemEndpointGroupProtocol: EndpointGroup {
+public protocol SystemEndpointGroupProtocol: EndpointGroupProtocol {
     associatedtype Route: RouteKind
 
     // MARK: Type Aliases

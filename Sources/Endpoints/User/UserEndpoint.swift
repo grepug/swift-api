@@ -7,20 +7,20 @@
 
 import SwiftAPICore
 
-public protocol EndpointGroupNamespace {
+public protocol EndpointGroup {
     /// The name of the endpoint group
     static var name: String { get }
 }
 
 public enum EP {
-    public enum User: EndpointGroupNamespace {
+    public enum User: EndpointGroup {
         public static var name: String {
             "user"
         }
     }
 }
 
-public protocol UserEndpointGroupProtocol: EndpointGroup {
+public protocol UserEndpointGroupProtocol: EndpointGroupProtocol {
     associatedtype Route: RouteKind
 
     typealias E1 = EP.User.FetchFreeFeature

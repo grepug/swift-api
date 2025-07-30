@@ -1,10 +1,10 @@
 import SwiftAPICore
 
-public protocol SystemEndpointGroupProtocol: EndpointGroup {
+public protocol SystemEndpointGroupProtocol: EndpointGroupProtocol {
     associatedtype Route: RouteKind
     typealias NS = EP.System
     typealias E1 = NS.AppConfig
-    
+
     func fetchAppConfig(
         context: RequestContext<Route.Request, E1.Query, E1.Body>
     ) async throws -> E1.ResponseContent
@@ -19,7 +19,7 @@ extension SystemEndpointGroupProtocol {
 }
 
 extension EP {
-    public enum System: EndpointGroupNamespace {
+    public enum System: EndpointGroup {
         public static var name: String {
             "system"
         }

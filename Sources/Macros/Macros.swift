@@ -54,7 +54,7 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
             throw MacroError.notAppliedToStruct
         }
 
-        // Try to detect enclosing type and auto-prefix path if it conforms to EndpointGroupNamespace
+        // Try to detect enclosing type and auto-prefix path if it conforms to EndpointGroup
         let finalPath = try resolveFinalPath(rawPath: rawPath, structDecl: structDecl, context: context)
 
         var members: [DeclSyntax] = []
@@ -376,7 +376,7 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
         return (path, method)
     }
 
-    // MARK: - Path Resolution with EndpointGroupNamespace
+    // MARK: - Path Resolution with EndpointGroup
 
     private static func resolveFinalPath(
         rawPath: String,

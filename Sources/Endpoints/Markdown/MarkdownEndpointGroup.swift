@@ -24,7 +24,7 @@ import SwiftAPICore
 ///
 /// This protocol establishes the contract for markdown processing endpoints that handle
 /// text-to-markdown conversion with support for streaming and block responses.
-public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
+public protocol MarkdownEndpointGroupProtocol: EndpointGroupProtocol {
     associatedtype Route: RouteKind
 
     // MARK: Type Aliases
@@ -78,7 +78,7 @@ extension MarkdownEndpointGroupProtocol {
 
 extension EP {
     /// Namespace for markdown processing endpoints
-    public enum Markdown: EndpointGroupNamespace {
+    public enum Markdown: EndpointGroup {
         public static var name: String {
             "markdown"
         }

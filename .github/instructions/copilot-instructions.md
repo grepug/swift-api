@@ -29,7 +29,7 @@ extension EP {
 Each endpoint group follows this pattern:
 
 ```swift
-public protocol SystemEndpointGroupProtocol: EndpointGroup {
+public protocol SystemEndpointGroupProtocol: EndpointGroupProtocol {
     associatedtype Route: RouteKind
     typealias E1 = EP.System.AppConfig
     func fetchAppConfig(context: RequestContext<Route.Request, E1.Query, E1.Body>) async throws -> E1.ResponseContent

@@ -3,7 +3,7 @@ import Testing
 
 @testable import SwiftAPICore
 
-@Suite("EndpointGroup Protocol Tests")
+@Suite("EndpointGroupProtocol Protocol Tests")
 struct EndpointGroupTests {
 
     @Suite("Route Management")

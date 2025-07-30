@@ -24,9 +24,9 @@ struct IntegrationTests {
             #expect(mockGroup.finalRoutes[0].method == EndpointMethod.POST)
         }
 
-        @Test("RouteBuilder with EndpointGroup integration")
+        @Test("RouteBuilder with EndpointGroupProtocol integration")
         func routeBuilderWithEndpointGroupIntegration() {
-            // Test that @RouteBuilder works properly in EndpointGroup context
+            // Test that @RouteBuilder works properly in EndpointGroupProtocol context
             let route = MockRoute()
             let group = MockEndpointGroupWithRoutes(route: route)
 

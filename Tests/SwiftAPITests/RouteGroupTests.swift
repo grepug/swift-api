@@ -7,7 +7,7 @@ import Testing
 struct RouteGroupTests {
 
     // Note: RouteGroup is a simple protocol with only routes and path properties
-    // Most functionality is already tested through RouteBuilder and EndpointGroup tests
+    // Most functionality is already tested through RouteBuilder and EndpointGroupProtocol tests
 
     @Suite("Basic Implementation")
     struct BasicImplementationTests {
