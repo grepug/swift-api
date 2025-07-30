@@ -521,6 +521,96 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
     }
 }
 
+/// Implementation of the `@EndpointGroup` macro, which automatically makes an enum conform to EndpointGroup
+public struct EndpointGroupMacro: ExtensionMacro, MemberMacro {
+
+    // MARK: - ExtensionMacro
+
+    public static func expansion(
+        of node: AttributeSyntax,
+        attachedTo declaration: some DeclGroupSyntax,
+        providingExtensionsOf type: some TypeSyntaxProtocol,
+        conformingTo protocols: [TypeSyntax],
+        in context: some MacroExpansionContext
+    ) throws -> [ExtensionDeclSyntax] {
+
+        // Verify we have a group name (though we don't use it here)
+        guard extractEndpointGroupName(from: node) != nil else {
+            throw MacroError.missingGroupName
+        }
+
+        // Create extension that adds EndpointGroup conformance
+        let extensionDecl = ExtensionDeclSyntax(
+            extendedType: type,
+            inheritanceClause: InheritanceClauseSyntax {
+                InheritedTypeSyntax(type: IdentifierTypeSyntax(name: .identifier("EndpointGroup")))
+            }
+        ) {}
+
+        return [extensionDecl]
+    }
+
+    // MARK: - MemberMacro
+
+    public static func expansion(
+        of node: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
+        conformingTo protocols: [TypeSyntax],
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+
+        // Extract the group name from the macro arguments
+        guard let groupName = extractEndpointGroupName(from: node) else {
+            throw MacroError.missingGroupName
+        }
+
+        // Only apply to enum declarations
+        guard declaration.is(EnumDeclSyntax.self) else {
+            throw MacroError.notAppliedToEnum
+        }
+
+        var members: [DeclSyntax] = []
+
+        // Generate the static name property
+        let nameProperty = VariableDeclSyntax(
+            modifiers: DeclModifierListSyntax([
+                DeclModifierSyntax(name: .keyword(.public)),
+                DeclModifierSyntax(name: .keyword(.static)),
+            ]),
+            bindingSpecifier: .keyword(.var)
+        ) {
+            PatternBindingSyntax(
+                pattern: IdentifierPatternSyntax(identifier: .identifier("name")),
+                typeAnnotation: TypeAnnotationSyntax(
+                    type: IdentifierTypeSyntax(name: .identifier("String"))
+                ),
+                accessorBlock: AccessorBlockSyntax(
+                    accessors: .getter([
+                        CodeBlockItemSyntax(
+                            item: .expr(ExprSyntax(StringLiteralExprSyntax(content: groupName)))
+                        )
+                    ])
+                )
+            )
+        }
+        members.append(DeclSyntax(nameProperty))
+
+        return members
+    }
+
+    // MARK: - Helper Methods
+
+    private static func extractEndpointGroupName(from node: AttributeSyntax) -> String? {
+        guard let arguments = node.arguments?.as(LabeledExprListSyntax.self),
+            let firstArg = arguments.first?.expression.as(StringLiteralExprSyntax.self)
+        else {
+            return nil
+        }
+
+        return firstArg.segments.first?.as(StringSegmentSyntax.self)?.content.text
+    }
+}
+
 /// Implementation of the `@DTO` macro, which automatically adds DTO conformances and initializers
 public struct DTOMacro: ExtensionMacro, MemberMacro {
 
@@ -697,6 +787,8 @@ private func generateDTOInitializer(for structDecl: StructDeclSyntax) throws -> 
 enum MacroError: Error, CustomStringConvertible {
     case notAppliedToStruct
     case notAppliedToSupportedType
+    case notAppliedToEnum
+    case missingGroupName
     case invalidArguments
     case invalidPathArgument
     case invalidMethodArgument
@@ -707,6 +799,10 @@ enum MacroError: Error, CustomStringConvertible {
             return "@Endpoint macro can only be applied to struct declarations"
         case .notAppliedToSupportedType:
             return "@DTO macro can only be applied to struct or enum declarations"
+        case .notAppliedToEnum:
+            return "@EndpointGroup macro can only be applied to enum declarations"
+        case .missingGroupName:
+            return "@EndpointGroup macro requires a 'name' parameter"
         case .invalidArguments:
             return "@Endpoint macro requires path and method arguments"
         case .invalidPathArgument:

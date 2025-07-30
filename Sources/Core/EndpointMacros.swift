@@ -52,6 +52,21 @@ import Foundation
 @attached(member, names: arbitrary)
 public macro Endpoint(_ path: String, _ method: EndpointMethod) = #externalMacro(module: "Macros", type: "EndpointMacro")
 
+/// A macro that automatically makes an enum conform to the EndpointGroup protocol with a specified name.
+///
+/// This macro adds conformance to the EndpointGroup protocol and generates the required `name` property.
+///
+/// Usage:
+/// ```swift
+/// @EndpointGroup("user")
+/// public enum User {
+///     // Automatically conforms to EndpointGroup with name = "user"
+/// }
+/// ```
+@attached(extension, conformances: EndpointGroup)
+@attached(member, names: named(name))
+public macro EndpointGroup(_ name: String) = #externalMacro(module: "Macros", type: "EndpointGroupMacro")
+
 /// A macro that automatically makes a struct or enum conform to common DTO protocols and generates initializers.
 ///
 /// This macro automatically adds conformance to Hashable, Codable, and Sendable protocols.

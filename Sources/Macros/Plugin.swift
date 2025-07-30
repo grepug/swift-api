@@ -12,6 +12,7 @@ import SwiftSyntaxMacros
 struct MacroPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         EndpointMacro.self,
+        EndpointGroupMacro.self,
         DTOMacro.self,
     ]
 }

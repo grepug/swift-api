@@ -1,3 +1,9 @@
+/// Protocol for endpoint group naming
+public protocol EndpointGroup {
+    /// The name of the endpoint group
+    static var name: String { get }
+}
+
 public protocol EndpointGroupProtocol: Sendable {
     @RouteBuilder
     var routes: Routes { get }

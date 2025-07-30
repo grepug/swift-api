@@ -19,11 +19,8 @@ extension SystemEndpointGroupProtocol {
 }
 
 extension EP {
-    public enum System: EndpointGroup {
-        public static var name: String {
-            "system"
-        }
-    }
+    @EndpointGroup("system")
+    public enum System {}
 }
 
 extension EP.System {

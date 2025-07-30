@@ -13,7 +13,7 @@ import XCTest
 final class WordsEndpointPathTests: XCTestCase {
 
     func testWordsEndpointGroupName() {
-        XCTAssertEqual(EP.Words.groupName, "words", "Group name should be 'words'")
+        XCTAssertEqual(EP.Words.name, "words", "Group name should be 'words'")
     }
 
     func testFetchSuggestedWordsPath() {
@@ -30,7 +30,7 @@ final class WordsEndpointPathTests: XCTestCase {
 
     func testPathsAreGrouped() {
         // Verify that both endpoints use the group name
-        let groupName = EP.Words.groupName
+        let groupName = EP.Words.name
 
         XCTAssertTrue(
             EP.Words.FetchSuggestedWords.path.hasPrefix("/\(groupName)/"),

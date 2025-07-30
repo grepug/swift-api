@@ -78,11 +78,8 @@ extension MarkdownEndpointGroupProtocol {
 
 extension EP {
     /// Namespace for markdown processing endpoints
-    public enum Markdown: EndpointGroup {
-        public static var name: String {
-            "markdown"
-        }
-    }
+    @EndpointGroup("markdown")
+    public enum Markdown {}
 }
 
 // MARK: - Endpoint Definitions

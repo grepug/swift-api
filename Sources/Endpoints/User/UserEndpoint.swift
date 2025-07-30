@@ -7,17 +7,9 @@
 
 import SwiftAPICore
 
-public protocol EndpointGroup {
-    /// The name of the endpoint group
-    static var name: String { get }
-}
-
 public enum EP {
-    public enum User: EndpointGroup {
-        public static var name: String {
-            "user"
-        }
-    }
+    @EndpointGroup("user")
+    public enum User {}
 }
 
 public protocol UserEndpointGroupProtocol: EndpointGroupProtocol {

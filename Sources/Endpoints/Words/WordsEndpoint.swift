@@ -2,9 +2,8 @@ import ContextSharedModels
 import SwiftAPICore
 
 extension EP {
-    public enum Words: EndpointGroupNaming {
-        public static let groupName = "words"
-    }
+    @EndpointGroup("words")
+    public enum Words {}
 }
 
 public protocol WordsEndpointGroupProtocol: EndpointGroupProtocol {
@@ -34,11 +33,7 @@ extension WordsEndpointGroupProtocol {
     }
 }
 
-extension EP.Words: EndpointGroup {
-    public static var name: String {
-        "words"
-    }
-
+extension EP.Words {
     @Endpoint("suggested", .POST)
     public struct FetchSuggestedWords {
         public var body: Body
