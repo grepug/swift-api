@@ -53,7 +53,7 @@ extension MockPostEndpoint {
         init(data: String) { self.data = data }
     }
 
-    struct ResponseContent: CoSendable {
+    struct Content: CoSendable {
         let result: String
         init(result: String) { self.result = result }
     }
@@ -65,7 +65,7 @@ struct MockStreamEndpoint: Endpoint {
 }
 
 extension MockStreamEndpoint {
-    struct ResponseChunk: CoSendable {
+    struct Chunk: CoSendable {
         let chunk: String
         init(chunk: String) { self.chunk = chunk }
     }
@@ -184,22 +184,22 @@ struct EndpointTests {
     struct ContainerTypeTests {
         @Test("EndpointResponseContainer functionality")
         func endpointResponseContainerFunctionality() throws {
-            let testData = MockPostEndpoint.ResponseContent(result: "success")
+            let testData = MockPostEndpoint.Content(result: "success")
             let container = EndpointResponseContainer(result: testData)
 
             let encoded = try JSONEncoder().encode(container)
-            let decoded = try JSONDecoder().decode(EndpointResponseContainer<MockPostEndpoint.ResponseContent>.self, from: encoded)
+            let decoded = try JSONDecoder().decode(EndpointResponseContainer<MockPostEndpoint.Content>.self, from: encoded)
 
             #expect(decoded.result.result == "success")
         }
 
         @Test("EndpointResponseChunkContainer with error codes", arguments: [nil, 400, 500])
         func endpointResponseChunkContainerWithErrorCodes(errorCode: Int?) throws {
-            let chunk = MockStreamEndpoint.ResponseChunk(chunk: "data")
+            let chunk = MockStreamEndpoint.Chunk(chunk: "data")
             let container = EndpointResponseChunkContainer(chunk: chunk, errorCode: errorCode)
 
             let encoded = try JSONEncoder().encode(container)
-            let decoded = try JSONDecoder().decode(EndpointResponseChunkContainer<MockStreamEndpoint.ResponseChunk>.self, from: encoded)
+            let decoded = try JSONDecoder().decode(EndpointResponseChunkContainer<MockStreamEndpoint.Chunk>.self, from: encoded)
 
             #expect(decoded.chunk.chunk == "data")
             #expect(decoded.errorCode == errorCode)
@@ -295,7 +295,7 @@ struct RouteKindTests {
             let configuredRoute = route.block(MockPostEndpoint.self) { context in
                 #expect(context.request.userId != UUID())
                 #expect(context.body.data == "test")
-                return MockPostEndpoint.ResponseContent(result: "success")
+                return MockPostEndpoint.Content(result: "success")
             }
 
             #expect(configuredRoute.path == "/mock/post")
@@ -307,9 +307,9 @@ struct RouteKindTests {
             var route = MockRoute()
 
             let configuredRoute = route.stream(MockStreamEndpoint.self) { context in
-                AsyncStream<MockStreamEndpoint.ResponseChunk> { continuation in
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk1"))
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk2"))
+                AsyncStream<MockStreamEndpoint.Chunk> { continuation in
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk1"))
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk2"))
                     continuation.finish()
                 }
             }
@@ -409,20 +409,20 @@ struct RequestResponseTests {
     struct RouteResponseKindTests {
         @Test("Codable response creation")
         func codableResponseCreation() {
-            let testData = MockPostEndpoint.ResponseContent(result: "success")
+            let testData = MockPostEndpoint.Content(result: "success")
             let response = MockResponse.fromCodable(testData)
 
-            if let responseData = response.data as? MockPostEndpoint.ResponseContent {
+            if let responseData = response.data as? MockPostEndpoint.Content {
                 #expect(responseData.result == "success")
             } else {
-                #expect(Bool(false), "Response data should be MockPostEndpoint.ResponseContent")
+                #expect(Bool(false), "Response data should be MockPostEndpoint.Content")
             }
         }
 
         @Test("Stream response creation")
         func streamResponseCreation() async {
-            let stream = AsyncStream<MockStreamEndpoint.ResponseChunk> { continuation in
-                continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "test"))
+            let stream = AsyncStream<MockStreamEndpoint.Chunk> { continuation in
+                continuation.yield(MockStreamEndpoint.Chunk(chunk: "test"))
                 continuation.finish()
             }
 
@@ -571,7 +571,7 @@ struct IntegrationTests {
             let mockGroup = MockEndpointGroup(routes: [
                 MockRoute().block(MockPostEndpoint.self) { context in
                     #expect(context.body.data == "integration test")
-                    return MockPostEndpoint.ResponseContent(result: "success")
+                    return MockPostEndpoint.Content(result: "success")
                 }
             ])
 
@@ -627,10 +627,10 @@ struct IntegrationTests {
             var route = MockRoute()
 
             let configuredRoute = route.stream(MockStreamEndpoint.self) { context in
-                AsyncStream<MockStreamEndpoint.ResponseChunk> { continuation in
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk1"))
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk2"))
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk3"))
+                AsyncStream<MockStreamEndpoint.Chunk> { continuation in
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk1"))
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk2"))
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk3"))
                     continuation.finish()
                 }
             }

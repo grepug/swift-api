@@ -7,14 +7,13 @@ public protocol SystemEndpointGroupProtocol: EndpointGroupProtocol {
 
     func fetchAppConfig(
         context: RequestContext<Route.Request, E1.Query, E1.Body>
-    ) async throws -> E1.ResponseContent
+    ) async throws -> E1.Content
 }
 
 extension SystemEndpointGroupProtocol {
     @RouteBuilder
     public var routes: Routes {
-        Route()
-            .block(E1.self, handler: fetchAppConfig)
+        Route().block(E1.self, fetchAppConfig)
     }
 }
 
@@ -34,7 +33,7 @@ extension EP.System {
         }
 
         @DTO
-        public struct ResponseContent {
+        public struct Content {
             public var forceUpdate: Bool
             public var appReviewMode: Bool
         }

@@ -32,7 +32,7 @@ Each endpoint group follows this pattern:
 public protocol SystemEndpointGroupProtocol: EndpointGroupProtocol {
     associatedtype Route: RouteKind
     typealias E1 = EP.System.AppConfig
-    func fetchAppConfig(context: RequestContext<Route.Request, E1.Query, E1.Body>) async throws -> E1.ResponseContent
+    func fetchAppConfig(context: RequestContext<Route.Request, E1.Query, E1.Body>) async throws -> E1.Content
 }
 ```
 
@@ -48,8 +48,8 @@ RequestContext<Route.Request, E.Query, E.Body>
 
 Endpoints support two response modes:
 
-- **Block**: Single response (`ResponseContent`)
-- **Stream**: Chunked responses (`ResponseChunk` via `AsyncSequence`)
+- **Block**: Single response (`Content`)
+- **Stream**: Chunked responses (`Chunk` via `AsyncSequence`)
 
 ### Route Building System
 
@@ -78,8 +78,8 @@ public var routes: Routes {
 
 - `Body: CoSendable` (default: `EmptyCodable`)
 - `Query: CoSendable` (default: `EmptyCodable`)
-- `ResponseContent: CoSendable` (default: `EmptyCodable`)
-- `ResponseChunk: CoSendable` (default: `EmptyCodable`)
+- `Content: CoSendable` (default: `EmptyCodable`)
+- `Chunk: CoSendable` (default: `EmptyCodable`)
 
 ## Development Workflows
 

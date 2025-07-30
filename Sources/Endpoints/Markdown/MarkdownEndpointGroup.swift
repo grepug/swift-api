@@ -30,7 +30,7 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroupProtocol {
     // MARK: Type Aliases
     typealias E1 = EP.Markdown.CreateMarkdown
     typealias E2 = EP.Markdown.CreateMarkdownV2
-    associatedtype S1: AsyncSequence where S1.Element == E1.ResponseChunk
+    associatedtype S1: AsyncSequence where S1.Element == E1.Chunk
 
     // MARK: Required Methods
 
@@ -54,25 +54,16 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroupProtocol {
     /// - Throws: Processing or network errors
     func createMarkdownV2(
         context: RequestContext<Route.Request, E2.Query, E2.Body>,
-    ) async throws -> E2.ResponseContent
+    ) async throws -> E2.Content
 }
 
 // MARK: - Default Implementation
 
 extension MarkdownEndpointGroupProtocol {
-
-    /// Route configuration for markdown endpoints
-    ///
-    /// @Sendable (RequestContext<Self.Route.Request, EP.Markdown.CreateMarkdown.Query, EP.Markdown.CreateMarkdown.Body>, EP.Markdown.CreateMarkdown.Type) async throws -> Self.S1
-    /// @Sendable (RequestContext<Self.Route.Request, EmptyCodable, EP.Markdown.CreateMarkdown.Body>, EP.Markdown.CreateMarkdown.Type) async throws -> Self.S1
-    /// @Sendable (RequestContext<Self.Route.Request, EP.Markdown.CreateMarkdown.Query, EP.Markdown.CreateMarkdown.Body>) async throws -> Self.S1
     @RouteBuilder
     public var routes: Routes {
-        Route()
-            .stream(E1.self, handler: createMarkdown)
-
-        Route()
-            .block(E2.self, handler: createMarkdownV2)
+        Route().stream(E1.self, createMarkdown)
+        Route().block(E2.self, createMarkdownV2)
     }
 }
 
@@ -155,7 +146,7 @@ extension EP.Markdown.CreateMarkdown {
 
     /// Response chunk for streaming markdown content
     @DTO
-    public struct ResponseChunk {
+    public struct Chunk {
 
         // MARK: Properties
 
@@ -184,7 +175,7 @@ extension EP.Markdown.CreateMarkdownV2 {
 
     /// Response containing complete markdown content
     @DTO
-    public struct ResponseContent {
+    public struct Content {
 
         // MARK: Properties
 

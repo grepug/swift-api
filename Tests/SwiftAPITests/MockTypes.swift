@@ -43,7 +43,7 @@ extension MockPostEndpoint {
         init(data: String) { self.data = data }
     }
 
-    struct ResponseContent: CoSendable {
+    struct Content: CoSendable {
         let result: String
         init(result: String) { self.result = result }
     }
@@ -55,7 +55,7 @@ struct MockStreamEndpoint: Endpoint {
 }
 
 extension MockStreamEndpoint {
-    struct ResponseChunk: CoSendable {
+    struct Chunk: CoSendable {
         let chunk: String
         init(chunk: String) { self.chunk = chunk }
     }

@@ -32,7 +32,7 @@ import Foundation
 ///     }
 ///
 ///     @DTO
-///     public struct ResponseContent {
+///     public struct Content {
 ///         public var segments: [ContextModel.ContextSegment]
 ///     }
 /// }
@@ -47,7 +47,7 @@ import Foundation
 /// - For nested types with @DTO: Conformance to Hashable, Codable, Sendable + initializers
 /// - Processes properties with no access modifier or 'public' access modifier
 /// Note: Properties must be manually declared as public for external use
-/// Note: Nested types (Body, Query, ResponseContent, etc.) should use @DTO for automatic functionality
+/// Note: Nested types (Body, Query, Content, etc.) should use @DTO for automatic functionality
 @attached(extension, conformances: Endpoint)
 @attached(member, names: arbitrary)
 public macro Endpoint(_ path: String, _ method: EndpointMethod) = #externalMacro(module: "Macros", type: "EndpointMacro")

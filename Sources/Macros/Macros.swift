@@ -59,7 +59,7 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
 
         var members: [DeclSyntax] = []
 
-        // Note: Nested types like Body, Query, ResponseContent should be manually annotated with @DTO
+        // Note: Nested types like Body, Query, Content should be manually annotated with @DTO
         // for automatic protocol conformance (Hashable, Codable, Sendable) and initializer generation
 
         // Add static path property
@@ -426,7 +426,7 @@ public struct EndpointMacro: ExtensionMacro, MemberMacro {
     private static func shouldApplyDTOToNestedType(_ typeName: String) -> Bool {
         // Common nested type names that should automatically get DTO functionality
         let dtoTargetNames: Set<String> = [
-            "Body", "Query", "ResponseContent", "ResponseChunk",
+            "Body", "Query", "Content", "Chunk",
             "Feature", "Source", "FeatureLimitInfo", "StringBool",
         ]
 

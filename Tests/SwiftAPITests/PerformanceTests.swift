@@ -71,7 +71,7 @@ struct PerformanceTests {
     struct SerializationPerformanceTests {
         @Test("Container serialization performance")
         func containerSerializationPerformance() throws {
-            let testData = MockPostEndpoint.ResponseContent(result: "performance test")
+            let testData = MockPostEndpoint.Content(result: "performance test")
             let container = EndpointResponseContainer(result: testData)
 
             let startTime = CFAbsoluteTimeGetCurrent()
@@ -79,7 +79,7 @@ struct PerformanceTests {
             // Perform multiple serialization/deserialization cycles
             for _ in 0..<100 {
                 let encoded = try JSONEncoder().encode(container)
-                let decoded = try JSONDecoder().decode(EndpointResponseContainer<MockPostEndpoint.ResponseContent>.self, from: encoded)
+                let decoded = try JSONDecoder().decode(EndpointResponseContainer<MockPostEndpoint.Content>.self, from: encoded)
                 _ = decoded.result.result
             }
 
@@ -92,7 +92,7 @@ struct PerformanceTests {
         @Test("Large response chunk container performance")
         func largeResponseChunkContainerPerformance() throws {
             let chunks = (0..<1000).map { index in
-                MockStreamEndpoint.ResponseChunk(chunk: "chunk_\(index)")
+                MockStreamEndpoint.Chunk(chunk: "chunk_\(index)")
             }
 
             let startTime = CFAbsoluteTimeGetCurrent()
@@ -100,7 +100,7 @@ struct PerformanceTests {
             for chunk in chunks {
                 let container = EndpointResponseChunkContainer(chunk: chunk, errorCode: nil)
                 let encoded = try JSONEncoder().encode(container)
-                _ = try JSONDecoder().decode(EndpointResponseChunkContainer<MockStreamEndpoint.ResponseChunk>.self, from: encoded)
+                _ = try JSONDecoder().decode(EndpointResponseChunkContainer<MockStreamEndpoint.Chunk>.self, from: encoded)
             }
 
             let endTime = CFAbsoluteTimeGetCurrent()

@@ -55,8 +55,8 @@ struct EndpointTests {
 
                 typealias Query = EmptyCodable
                 typealias Body = EmptyCodable
-                typealias ResponseContent = MockPostEndpoint.ResponseContent
-                typealias ResponseChunk = EmptyCodable
+                typealias Content = MockPostEndpoint.Content
+                typealias Chunk = EmptyCodable
 
                 var body: Body { EmptyCodable() }
                 var query: Query { EmptyCodable() }
@@ -68,7 +68,7 @@ struct EndpointTests {
                 // without any JSON decoding attempts
                 #expect(context.query == EmptyCodable())
                 #expect(context.body == EmptyCodable())
-                return MockPostEndpoint.ResponseContent(result: "success")
+                return MockPostEndpoint.Content(result: "success")
             }
 
             // Create a request with invalid JSON data
@@ -84,10 +84,10 @@ struct EndpointTests {
 
             // Verify the response was created successfully
             let mockResponse = response as MockResponse
-            if let responseData = mockResponse.data as? MockPostEndpoint.ResponseContent {
+            if let responseData = mockResponse.data as? MockPostEndpoint.Content {
                 #expect(responseData.result == "success")
             } else {
-                #expect(Bool(false), "Response should contain MockPostEndpoint.ResponseContent")
+                #expect(Bool(false), "Response should contain MockPostEndpoint.Content")
             }
         }
 
@@ -100,8 +100,8 @@ struct EndpointTests {
 
                 typealias Query = MockPostEndpoint.Body  // CoSendable but not EmptyCodable
                 typealias Body = MockPostEndpoint.Body  // CoSendable but not EmptyCodable
-                typealias ResponseContent = MockPostEndpoint.ResponseContent
-                typealias ResponseChunk = EmptyCodable
+                typealias Content = MockPostEndpoint.Content
+                typealias Chunk = EmptyCodable
 
                 var body: Body { MockPostEndpoint.Body(data: "default") }
                 var query: Query { MockPostEndpoint.Body(data: "default") }
@@ -109,7 +109,7 @@ struct EndpointTests {
 
             let mockRoute = MockRoute()
             let configuredRoute = mockRoute.block(NonEmptyEndpoint.self) { context in
-                return MockPostEndpoint.ResponseContent(result: "success")
+                return MockPostEndpoint.Content(result: "success")
             }
 
             // With invalid JSON, this should throw because non-EmptyCodable types
@@ -130,22 +130,22 @@ struct EndpointTests {
     struct ContainerTypeTests {
         @Test("EndpointResponseContainer functionality")
         func endpointResponseContainerFunctionality() throws {
-            let testData = MockPostEndpoint.ResponseContent(result: "success")
+            let testData = MockPostEndpoint.Content(result: "success")
             let container = EndpointResponseContainer(result: testData)
 
             let encoded = try JSONEncoder().encode(container)
-            let decoded = try JSONDecoder().decode(EndpointResponseContainer<MockPostEndpoint.ResponseContent>.self, from: encoded)
+            let decoded = try JSONDecoder().decode(EndpointResponseContainer<MockPostEndpoint.Content>.self, from: encoded)
 
             #expect(decoded.result.result == "success")
         }
 
         @Test("EndpointResponseChunkContainer with error codes", arguments: [nil, 400, 500])
         func endpointResponseChunkContainerWithErrorCodes(errorCode: Int?) throws {
-            let chunk = MockStreamEndpoint.ResponseChunk(chunk: "data")
+            let chunk = MockStreamEndpoint.Chunk(chunk: "data")
             let container = EndpointResponseChunkContainer(chunk: chunk, errorCode: errorCode)
 
             let encoded = try JSONEncoder().encode(container)
-            let decoded = try JSONDecoder().decode(EndpointResponseChunkContainer<MockStreamEndpoint.ResponseChunk>.self, from: encoded)
+            let decoded = try JSONDecoder().decode(EndpointResponseChunkContainer<MockStreamEndpoint.Chunk>.self, from: encoded)
 
             #expect(decoded.chunk.chunk == "data")
             #expect(decoded.errorCode == errorCode)

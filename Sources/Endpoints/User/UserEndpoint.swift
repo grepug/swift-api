@@ -18,13 +18,12 @@ public protocol UserEndpointGroupProtocol: EndpointGroupProtocol {
     typealias E1 = EP.User.FetchFreeFeature
     func fetchUserRequestFreeFeature(
         context: RequestContext<Route.Request, E1.Query, E1.Body>
-    ) async throws -> E1.ResponseContent
+    ) async throws -> E1.Content
 }
 
 extension UserEndpointGroupProtocol {
     @RouteBuilder
     public var routes: Routes {
-        Route()
-            .block(E1.self, handler: fetchUserRequestFreeFeature)
+        Route().block(E1.self, fetchUserRequestFreeFeature)
     }
 }

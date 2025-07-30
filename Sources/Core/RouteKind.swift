@@ -33,8 +33,8 @@ extension RouteKind {
 
     public func block<E>(
         _ endpoint: E.Type,
-        handler: @escaping @Sendable (_ context: RequestContext<Request, E.Query, E.Body>) async throws -> E.ResponseContent
-    ) -> Self where E: Endpoint, E.ResponseChunk == EmptyCodable {
+        _ handler: @escaping @Sendable (_ context: RequestContext<Request, E.Query, E.Body>) async throws -> E.Content
+    ) -> Self where E: Endpoint, E.Chunk == EmptyCodable {
         var me = self
         me.path = E.path
         me.method = E.method
@@ -59,8 +59,8 @@ extension RouteKind {
 
     public func stream<E, S>(
         _ endpoint: E.Type,
-        handler: @escaping @Sendable (_ context: RequestContext<Request, E.Query, E.Body>) async throws -> S
-    ) -> Self where E: Endpoint, S: AsyncSequence, E.ResponseChunk == S.Element {
+        _ handler: @escaping @Sendable (_ context: RequestContext<Request, E.Query, E.Body>) async throws -> S
+    ) -> Self where E: Endpoint, S: AsyncSequence, E.Chunk == S.Element {
         var me = self
         me.path = E.path
         me.method = E.method

@@ -58,20 +58,20 @@ struct RequestResponseTests {
     struct RouteResponseKindTests {
         @Test("Codable response creation")
         func codableResponseCreation() {
-            let testData = MockPostEndpoint.ResponseContent(result: "success")
+            let testData = MockPostEndpoint.Content(result: "success")
             let response = MockResponse.fromCodable(testData)
 
-            if let responseData = response.data as? MockPostEndpoint.ResponseContent {
+            if let responseData = response.data as? MockPostEndpoint.Content {
                 #expect(responseData.result == "success")
             } else {
-                #expect(Bool(false), "Response data should be MockPostEndpoint.ResponseContent")
+                #expect(Bool(false), "Response data should be MockPostEndpoint.Content")
             }
         }
 
         @Test("Stream response creation")
         func streamResponseCreation() async {
-            let stream = AsyncStream<MockStreamEndpoint.ResponseChunk> { continuation in
-                continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "test"))
+            let stream = AsyncStream<MockStreamEndpoint.Chunk> { continuation in
+                continuation.yield(MockStreamEndpoint.Chunk(chunk: "test"))
                 continuation.finish()
             }
 

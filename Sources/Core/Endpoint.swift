@@ -30,8 +30,8 @@ public struct EmptyCodable: CoSendable {
 public protocol Endpoint: Sendable {
     associatedtype Body: CoSendable = EmptyCodable
     associatedtype Query: CoSendable = EmptyCodable
-    associatedtype ResponseChunk: CoSendable = EmptyCodable
-    associatedtype ResponseContent: CoSendable = EmptyCodable
+    associatedtype Chunk: CoSendable = EmptyCodable
+    associatedtype Content: CoSendable = EmptyCodable
 
     static var path: String { get }
     static var method: EndpointMethod { get }
@@ -48,12 +48,12 @@ extension Endpoint where Query == EmptyCodable {
     public var query: Query { EmptyCodable() }
 }
 
-extension Endpoint where ResponseChunk == EmptyCodable {
-    public var response: ResponseChunk { EmptyCodable() }
+extension Endpoint where Chunk == EmptyCodable {
+    public var response: Chunk { EmptyCodable() }
 }
 
-extension Endpoint where ResponseContent == EmptyCodable {
-    public var response: ResponseContent { EmptyCodable() }
+extension Endpoint where Content == EmptyCodable {
+    public var response: Content { EmptyCodable() }
 }
 
 public struct EndpointResponseContainer<T: Codable>: Codable {

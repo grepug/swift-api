@@ -14,7 +14,7 @@ struct IntegrationTests {
             var mockRoute = MockRoute()
             mockRoute = mockRoute.block(MockPostEndpoint.self) { context in
                 #expect(context.body.data == "integration test")
-                return MockPostEndpoint.ResponseContent(result: "success")
+                return MockPostEndpoint.Content(result: "success")
             }
 
             let mockGroup = MockEndpointGroupWithRoutes(route: mockRoute)
@@ -69,10 +69,10 @@ struct IntegrationTests {
             let route = MockRoute()
 
             let configuredRoute = route.stream(MockStreamEndpoint.self) { context in
-                AsyncStream<MockStreamEndpoint.ResponseChunk> { continuation in
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk1"))
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk2"))
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk3"))
+                AsyncStream<MockStreamEndpoint.Chunk> { continuation in
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk1"))
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk2"))
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk3"))
                     continuation.finish()
                 }
             }

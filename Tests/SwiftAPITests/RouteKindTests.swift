@@ -21,7 +21,7 @@ struct RouteKindTests {
             let configuredRoute = route.block(MockPostEndpoint.self) { context in
                 #expect(context.request.userId != UUID())
                 #expect(context.body.data == "test")
-                return MockPostEndpoint.ResponseContent(result: "success")
+                return MockPostEndpoint.Content(result: "success")
             }
 
             #expect(configuredRoute.path == "/mock/post")
@@ -33,9 +33,9 @@ struct RouteKindTests {
             let route = MockRoute()
 
             let configuredRoute = route.stream(MockStreamEndpoint.self) { context in
-                AsyncStream<MockStreamEndpoint.ResponseChunk> { continuation in
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk1"))
-                    continuation.yield(MockStreamEndpoint.ResponseChunk(chunk: "chunk2"))
+                AsyncStream<MockStreamEndpoint.Chunk> { continuation in
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk1"))
+                    continuation.yield(MockStreamEndpoint.Chunk(chunk: "chunk2"))
                     continuation.finish()
                 }
             }

@@ -10,26 +10,24 @@ public protocol WordsEndpointGroupProtocol: EndpointGroupProtocol {
     associatedtype Route: RouteKind
 
     typealias E1 = EP.Words.FetchSuggestedWords
-    @Sendable
-    func fetchSuggestedWords(
-        context: RequestContext<Route.Request, E1.Query, E1.Body>
-    ) async throws -> E1.ResponseContent
-
     typealias E2 = EP.Words.LookupWord
-    @Sendable
+
+    associatedtype S1: AsyncSequence where S1.Element == E1.Chunk
+
+    func streamSuggestedWords(
+        context: RequestContext<Route.Request, E1.Query, E1.Body>
+    ) async throws -> S1
+
     func lookupWord(
         context: RequestContext<Route.Request, E2.Query, E2.Body>
-    ) async throws -> E2.ResponseContent
+    ) async throws -> E2.Content
 }
 
 extension WordsEndpointGroupProtocol {
     @RouteBuilder
     public var routes: Routes {
-        Route()
-            .block(EP.Words.FetchSuggestedWords.self, handler: fetchSuggestedWords)
-
-        Route()
-            .block(EP.Words.LookupWord.self, handler: lookupWord)
+        Route().stream(E1.self, streamSuggestedWords)
+        Route().block(E2.self, lookupWord)
     }
 }
 
@@ -44,8 +42,9 @@ extension EP.Words {
         }
 
         @DTO
-        public struct ResponseContent {
+        public struct Chunk {
             public var segments: [ContextModel.ContextSegment]
+            public var finished: Bool
         }
     }
 }
@@ -62,7 +61,7 @@ extension EP.Words {
         }
 
         @DTO
-        public struct ResponseContent {
+        public struct Content {
             public var segment: ContextModel.ContextSegment
         }
     }

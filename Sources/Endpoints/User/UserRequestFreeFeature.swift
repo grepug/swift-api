@@ -61,7 +61,7 @@ extension EP.User.FetchFreeFeature {
     }
 
     @DTO
-    public struct ResponseContent {
+    public struct Content {
         public let info: FeatureLimitInfo
     }
 }
