@@ -20,7 +20,7 @@ extension EP {
 
 extension EP.System {
     @Endpoint("app-config", .GET)
-    public struct AppConfig {
+    public struct AppConfig: Endpoint {
         public var query: Query
 
         @DTO

@@ -84,7 +84,7 @@ extension EP.Markdown {
     /// This endpoint processes text from various sources and streams back
     /// markdown content as it's generated, allowing for real-time processing.
     @Endpoint("create", .POST)
-    public struct CreateMarkdown {
+    public struct CreateMarkdown: Endpoint {
 
         // MARK: Properties
         public var body: Body
@@ -100,7 +100,7 @@ extension EP.Markdown {
     /// This endpoint processes text and returns the complete markdown
     /// content in a single response, suitable for smaller text inputs.
     @Endpoint("create_v2", .POST)
-    public struct CreateMarkdownV2 {
+    public struct CreateMarkdownV2: Endpoint {
 
         // MARK: Properties
         public var body: Body

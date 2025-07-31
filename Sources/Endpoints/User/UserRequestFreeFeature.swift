@@ -3,14 +3,14 @@ import SwiftAPICore
 
 extension EP.User {
     @Endpoint("check-feature-availability", .GET)
-    public struct FetchFreeFeature {
+    public struct FetchFreeFeature: Endpoint {
         public var query: Query
     }
 }
 
 extension EP.User.FetchFreeFeature {
     @DTO
-    public enum Feature: String, CaseIterable {
+    public enum Feature: String, CoSendable, CaseIterable {
         case importFulltext
         case addContextSegment
         case contextTranslation
