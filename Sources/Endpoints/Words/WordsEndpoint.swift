@@ -40,7 +40,7 @@ extension WordsEndpointGroupProtocol {
 
 extension EP.Words {
     @Endpoint("suggested", .POST)
-    public struct FetchSuggestedWords: Endpoint {
+    public struct FetchSuggestedWords {
         public var body: Body
 
         @DTO
@@ -58,7 +58,7 @@ extension EP.Words {
 
 extension EP.Words {
     @Endpoint("lookup", .POST)
-    public struct LookupWord: Endpoint {
+    public struct LookupWord {
         public var body: Body
 
         @DTO
@@ -76,7 +76,7 @@ extension EP.Words {
 
 extension EP.Words {
     @Endpoint("create-segment", .PUT)
-    public struct CreateSegment: Endpoint {
+    public struct CreateSegment {
         public var body: Body
 
         @DTO
@@ -89,7 +89,7 @@ extension EP.Words {
 
 extension EP.Words {
     @Endpoint("same-text-segments", .POST)
-    public struct SameTextSegments: Endpoint {
+    public struct SameTextSegments {
         public var body: Body
 
         @DTO
@@ -107,7 +107,7 @@ extension EP.Words {
 
 extension EP.Words {
     @Endpoint("same-existing-token-ranges", .POST)
-    public struct SameExistingTokenRanges: Endpoint {
+    public struct SameExistingTokenRanges {
         public var body: Body
 
         @DTO

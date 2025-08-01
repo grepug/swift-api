@@ -94,6 +94,10 @@ struct MockRequest: RouteRequestKind {
         return try JSONDecoder().decode(T.self, from: data)
     }
 
+    func injectedDependency<T>(_ handler: @escaping () async throws -> T) async rethrows -> T where T: Sendable {
+        try await handler()
+    }
+
     init(userId: UUID = UUID(), bodyData: Data? = nil, queryData: Data? = nil) {
         self.testUserId = userId
         self.bodyData = bodyData
@@ -124,6 +128,8 @@ struct MockResponse: RouteResponseKind, @unchecked Sendable {
 // MARK: - Mock EndpointGroupProtocol
 
 struct MockEndpointGroup: EndpointGroupProtocol {
+    typealias Route = MockRoute
+
     @RouteBuilder
     var routes: Routes {
         // Empty by default - individual tests can create specific mock groups
@@ -131,6 +137,8 @@ struct MockEndpointGroup: EndpointGroupProtocol {
 }
 
 struct MockEndpointGroupWithRoutes: EndpointGroupProtocol {
+    typealias Route = MockRoute
+
     let mockRoute: MockRoute
 
     @RouteBuilder
