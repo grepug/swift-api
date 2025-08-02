@@ -1,5 +1,5 @@
 {
-  "originHash" : "f284bf155286612d4fd63a1a910d2d8ac9577f10a3c3bd616d9a99f229c30970",
+  "originHash" : "072ecf1373de369e8c96349b102e67f8a6f4893ff1b55358930c88e8affd1378",
   "pins" : [
     {
       "identity" : "concurrency-utils",
@@ -8,6 +8,15 @@
       "state" : {
         "branch" : "main",
         "revision" : "a112259ae5e8376045c8e0913574c44180d829cc"
+      }
+    },
+    {
+      "identity" : "context-shared-models",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/grepug/context-shared-models.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "96d1f93614a63cf7609cc581ac180ed089ec932b"
       }
     },
     {
@@ -62,6 +71,15 @@
       "state" : {
         "revision" : "e8d6eba1fef23ae5b359c46b03f7d94be2f41fed",
         "version" : "3.12.3"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
+      "state" : {
+        "revision" : "0687f71944021d616d34d922343dcef086855920",
+        "version" : "600.0.1"
       }
     }
   ],

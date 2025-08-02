@@ -23,39 +23,37 @@ public enum EndpointMethod: String, Sendable {
 
 public typealias CoSendable = Sendable & Codable & Hashable
 
-public struct EmptyCodable: CoSendable {}
+public struct EmptyCodable: CoSendable {
+    public init() {}
+}
 
 public protocol Endpoint: Sendable {
-    associatedtype RequestBody: CoSendable = EmptyCodable
-    associatedtype RequestQuery: CoSendable = EmptyCodable
-    associatedtype ResponseChunk: CoSendable = EmptyCodable
-    associatedtype ResponseContent: CoSendable = EmptyCodable
+    associatedtype Body: CoSendable = EmptyCodable
+    associatedtype Query: CoSendable = EmptyCodable
+    associatedtype Chunk: CoSendable = EmptyCodable
+    associatedtype Content: CoSendable = EmptyCodable
 
     static var path: String { get }
     static var method: EndpointMethod { get }
 
-    var body: RequestBody { get }
-    var query: RequestQuery { get }
+    var body: Body { get }
+    var query: Query { get }
 }
 
-extension Endpoint {
-    public static var method: EndpointMethod { .GET }
+extension Endpoint where Body == EmptyCodable {
+    public var body: Body { EmptyCodable() }
 }
 
-extension Endpoint where RequestBody == EmptyCodable {
-    public var body: RequestBody { EmptyCodable() }
+extension Endpoint where Query == EmptyCodable {
+    public var query: Query { EmptyCodable() }
 }
 
-extension Endpoint where RequestQuery == EmptyCodable {
-    public var query: RequestQuery { EmptyCodable() }
+extension Endpoint where Chunk == EmptyCodable {
+    public var response: Chunk { EmptyCodable() }
 }
 
-extension Endpoint where ResponseChunk == EmptyCodable {
-    public var response: ResponseChunk { EmptyCodable() }
-}
-
-extension Endpoint where ResponseContent == EmptyCodable {
-    public var response: ResponseContent { EmptyCodable() }
+extension Endpoint where Content == EmptyCodable {
+    public var response: Content { EmptyCodable() }
 }
 
 public struct EndpointResponseContainer<T: Codable>: Codable {

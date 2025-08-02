@@ -1,52 +1,37 @@
 import SwiftAPICore
 
-public protocol SystemEndpointGroupProtocol: EndpointGroup {
-    associatedtype Route: RouteKind
-
+public protocol SystemEndpointGroupProtocol: EndpointGroupProtocol {
     typealias E1 = EP.System.AppConfig
-    func fetchAppConfig(request: Route.Request, EndpointType: E1.Type) async throws -> E1.ResponseContent
+
+    func fetchAppConfig(context: Context<E1>) async throws -> E1.Content
 }
 
 extension SystemEndpointGroupProtocol {
     @RouteBuilder
     public var routes: Routes {
-        Route()
-            .block(EP.System.AppConfig.self, handler: fetchAppConfig)
+        Route().block(E1.self, fetchAppConfig)
     }
 }
 
 extension EP {
-    public enum System {
-
-        public struct AppConfig: Endpoint {
-            public var query: RequestQuery
-
-            static public var path: String { "/system/app-config" }
-            static public var method: EndpointMethod { .GET }
-
-            public init(query: RequestQuery) {
-                self.query = query
-            }
-        }
-    }
+    @EndpointGroup("system")
+    public enum System {}
 }
 
-extension EP.System.AppConfig {
-    public struct RequestQuery: CoSendable {
-        public var appBuild: String
+extension EP.System {
+    @Endpoint("app-config", .GET)
+    public struct AppConfig {
+        public var query: Query
 
-        public init(appBuild: String) {
-            self.appBuild = appBuild
+        @DTO
+        public struct Query {
+            public var appBuild: String
         }
-    }
 
-    public struct ResponseContent: CoSendable {
-        public var forceUpdate: Bool
-        public var appReviewMode: Bool
-
-        public init(forceUpdate: Bool, appReviewMode: Bool) {
-            self.forceUpdate = forceUpdate
-            self.appReviewMode = appReviewMode
+        @DTO
+        public struct Content {
+            public var forceUpdate: Bool
+            public var appReviewMode: Bool
         }
     }
 }

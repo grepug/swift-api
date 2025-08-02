@@ -40,13 +40,13 @@ public protocol APIClientKind {
     /// - Parameter endpoint: The endpoint to make the request to
     /// - Returns: The decoded response content
     /// - Throws: APIClientError for various failure scenarios
-    func data<E: Endpoint>(on endpoint: E) async throws(APIClientError) -> E.ResponseContent
+    func data<E: Endpoint>(on endpoint: E) async throws(APIClientError) -> E.Content
 
     /// Creates a streaming connection to the specified endpoint
     ///
     /// - Parameter endpoint: The endpoint to stream from
     /// - Returns: An async throwing stream of response chunks
-    func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.ResponseChunk, Error> where E: Endpoint
+    func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.Chunk, Error> where E: Endpoint
 
     /// Performs a generic data request with custom parameters
     ///
@@ -96,6 +96,7 @@ public enum APIClientError: Throwable, Catching {
     case decodingError(message: String)
     case invalidAccessToken
     case urlSessionError(URLSessionError)
+    case cancelled
     case caught(_ error: Error)
 
     public var userFriendlyMessage: String {
@@ -110,6 +111,8 @@ public enum APIClientError: Throwable, Catching {
             "Failed to decode response: \(message)"
         case .urlSessionError(let error):
             "\(error.userFriendlyMessage)"
+        case .cancelled:
+            "The request was cancelled."
         case .caught(let error):
             ErrorKit.userFriendlyMessage(for: error)
         }
@@ -168,13 +171,13 @@ extension APIClientKind {
     /// - Parameter endpoint: The endpoint to make the request to
     /// - Returns: The decoded response content
     /// - Throws: APIClientError for various failure scenarios
-    public func data<E>(on endpoint: E) async throws(APIClientError) -> E.ResponseContent where E: Endpoint {
+    public func data<E>(on endpoint: E) async throws(APIClientError) -> E.Content where E: Endpoint {
         try await data(
             E.path,
             method: E.method,
             query: endpoint.query,
             body: endpoint.body,
-            decodingAs: E.ResponseContent.self,
+            decodingAs: E.Content.self,
         )
     }
 
@@ -187,7 +190,7 @@ extension APIClientKind {
     ///
     /// - Parameter endpoint: The endpoint to stream from
     /// - Returns: An async throwing stream of response chunks
-    public func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.ResponseChunk, Error> where E: Endpoint {
+    public func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.Chunk, Error> where E: Endpoint {
         let body = try! JSONEncoder().encode(endpoint.body)
         let query = makeQuery(endpoint.query)
         let request = urlRequest(
@@ -201,7 +204,7 @@ extension APIClientKind {
         return .makeCancellable { continuation in
             for try await string in stream {
                 let data = string.data(using: .utf8) ?? Data()
-                let container = try JSONDecoder().decode(EndpointResponseChunkContainer<E.ResponseChunk>.self, from: data)
+                let container = try JSONDecoder().decode(EndpointResponseChunkContainer<E.Chunk>.self, from: data)
 
                 guard container.errorCode == nil else {
                     continuation.finish(throwing: APIClientError.serverError(statusCode: container.errorCode!, message: ""))
@@ -258,6 +261,8 @@ extension APIClientKind {
                 let message = String(data: data, encoding: .utf8) ?? "Unknown error"
                 throw APIClientError.serverError(statusCode: httpResponse.statusCode, message: message)
             }
+        } catch is CancellationError {
+            throw .cancelled
         } catch let error as APIClientError {
             throw error
         } catch {

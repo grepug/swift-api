@@ -8,20 +8,19 @@
 import SwiftAPICore
 
 public enum EP {
+    @EndpointGroup("user")
     public enum User {}
 }
 
-public protocol UserEndpointGroupProtocol: EndpointGroup {
-    associatedtype Route: RouteKind
-
+public protocol UserEndpointGroupProtocol: EndpointGroupProtocol {
     typealias E1 = EP.User.FetchFreeFeature
-    func fetchUserRequestFreeFeature(request: Route.Request, EndpointType: E1.Type) async throws -> E1.ResponseContent
+
+    func fetchUserRequestFreeFeature(context: Context<E1>) async throws -> E1.Content
 }
 
 extension UserEndpointGroupProtocol {
     @RouteBuilder
     public var routes: Routes {
-        Route()
-            .block(EP.User.FetchFreeFeature.self, handler: fetchUserRequestFreeFeature)
+        Route().block(E1.self, fetchUserRequestFreeFeature)
     }
 }

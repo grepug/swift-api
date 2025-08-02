@@ -2,18 +2,15 @@ import Foundation
 import SwiftAPICore
 
 extension EP.User {
-    public struct FetchFreeFeature: Endpoint {
-        public static var path: String { "/user/check-feature-availability" }
-        public var query: RequestQuery
-
-        public init(query: RequestQuery) {
-            self.query = query
-        }
+    @Endpoint("check-feature-availability", .GET)
+    public struct FetchFreeFeature {
+        public var query: Query
     }
 }
 
 extension EP.User.FetchFreeFeature {
-    public enum Feature: String, CoSendable, CaseIterable {
+    @DTO
+    public enum Feature: String, CaseIterable {
         case importFulltext
         case addContextSegment
         case contextTranslation
@@ -41,15 +38,16 @@ extension EP.User.FetchFreeFeature {
         }
     }
 
-    public struct FeatureLimitInfo: CoSendable {
+    @DTO
+    public struct FeatureLimitInfo {
         public var featureCanUse: [Feature: Bool] = [:]
         public var featureNextAvailableDate: [Feature: Date?] = [:]
-
-        public init() {}
     }
 
-    public struct RequestQuery: CoSendable {
-        public enum StringBool: String, CoSendable {
+    @DTO
+    public struct Query {
+        @DTO
+        public enum StringBool: String {
             case `true`
             case `false`
 
@@ -60,18 +58,10 @@ extension EP.User.FetchFreeFeature {
 
         public let feature: Feature
         public let useOne: StringBool
-
-        public init(feature: Feature, useOne: Bool) {
-            self.feature = feature
-            self.useOne = useOne ? .true : .false
-        }
     }
 
-    public struct ResponseContent: CoSendable {
+    @DTO
+    public struct Content {
         public let info: FeatureLimitInfo
-
-        public init(info: FeatureLimitInfo) {
-            self.info = info
-        }
     }
 }

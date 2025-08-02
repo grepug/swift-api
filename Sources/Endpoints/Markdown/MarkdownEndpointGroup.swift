@@ -6,7 +6,7 @@
 // Copyright © 2025 Organization. All rights reserved.
 //
 
-/// Markdown endpoint group implementation for text processing and conversion.
+/// Markdown endpoint group providing implementation for text processing and conversion.
 ///
 /// This file provides endpoints for converting various text sources (EPUB, PDF, web content)
 /// into markdown format, supporting both streaming and block responses.
@@ -24,13 +24,11 @@ import SwiftAPICore
 ///
 /// This protocol establishes the contract for markdown processing endpoints that handle
 /// text-to-markdown conversion with support for streaming and block responses.
-public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
-    associatedtype Route: RouteKind
-
+public protocol MarkdownEndpointGroupProtocol: EndpointGroupProtocol {
     // MARK: Type Aliases
     typealias E1 = EP.Markdown.CreateMarkdown
     typealias E2 = EP.Markdown.CreateMarkdownV2
-    associatedtype S1: AsyncSequence where S1.Element == E1.ResponseChunk
+    associatedtype S1: AsyncSequence where S1.Element == E1.Chunk, S1: Sendable
 
     // MARK: Required Methods
 
@@ -42,8 +40,7 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
     /// - Returns: An async sequence of markdown chunks
     /// - Throws: Processing or network errors
     func createMarkdown(
-        request: Route.Request,
-        EndpointType: E1.Type,
+        context: RequestContext<Route.Request, E1.Query, E1.Body>,
     ) async throws -> S1
 
     /// Creates markdown from text using block response (V2)
@@ -54,56 +51,43 @@ public protocol MarkdownEndpointGroupProtocol: EndpointGroup {
     /// - Returns: Complete markdown response content
     /// - Throws: Processing or network errors
     func createMarkdownV2(
-        request: Route.Request,
-        EndpointType: E2.Type,
-    ) async throws -> EP.Markdown.CreateMarkdownV2.ResponseContent
+        context: RequestContext<Route.Request, E2.Query, E2.Body>,
+    ) async throws -> E2.Content
 }
 
 // MARK: - Default Implementation
 
 extension MarkdownEndpointGroupProtocol {
-
-    /// Route configuration for markdown endpoints
     @RouteBuilder
     public var routes: Routes {
-        Route()
-            .stream(EP.Markdown.CreateMarkdown.self, handler: createMarkdown)
-
-        Route()
-            .block(EP.Markdown.CreateMarkdownV2.self, handler: createMarkdownV2)
+        Route().stream(E1.self, createMarkdown)
+        Route().block(E2.self, createMarkdownV2)
     }
+}
+
+extension EP {
+    /// Namespace for markdown processing endpoints
+    @EndpointGroup("markdown")
+    public enum Markdown {}
 }
 
 // MARK: - Endpoint Definitions
 
-extension EP {
+extension EP.Markdown {
 
     /// Markdown processing endpoints namespace
-    public enum Markdown {
 
-        // MARK: - CreateMarkdown Endpoint
+    // MARK: - CreateMarkdown Endpoint
 
-        /// Endpoint for streaming markdown creation from text
-        ///
-        /// This endpoint processes text from various sources and streams back
-        /// markdown content as it's generated, allowing for real-time processing.
-        public struct CreateMarkdown: Endpoint {
+    /// Endpoint for streaming markdown creation from text
+    ///
+    /// This endpoint processes text from various sources and streams back
+    /// markdown content as it's generated, allowing for real-time processing.
+    @Endpoint("create", .POST)
+    public struct CreateMarkdown {
 
-            // MARK: Properties
-            public var body: RequestBody
-
-            // MARK: Endpoint Configuration
-            static public var path: String { "/markdown/create" }
-            static public var method: EndpointMethod { .POST }
-
-            // MARK: Initialization
-
-            /// Creates a new markdown creation request
-            /// - Parameter body: The request body containing text data
-            public init(body: RequestBody) {
-                self.body = body
-            }
-        }
+        // MARK: Properties
+        public var body: Body
     }
 }
 
@@ -115,22 +99,11 @@ extension EP.Markdown {
     ///
     /// This endpoint processes text and returns the complete markdown
     /// content in a single response, suitable for smaller text inputs.
-    public struct CreateMarkdownV2: Endpoint {
+    @Endpoint("create_v2", .POST)
+    public struct CreateMarkdownV2 {
 
         // MARK: Properties
-        public var body: RequestBody
-
-        // MARK: Endpoint Configuration
-        static public var path: String { "/markdown/create_v2" }
-        static public var method: EndpointMethod { .POST }
-
-        // MARK: Initialization
-
-        /// Creates a new markdown creation request (V2)
-        /// - Parameter body: The request body containing text data
-        public init(body: RequestBody) {
-            self.body = body
-        }
+        public var body: Body
     }
 }
 
@@ -141,12 +114,14 @@ extension EP.Markdown.CreateMarkdown {
     // MARK: - Request Types
 
     /// Request body for markdown creation
-    public struct RequestBody: CoSendable {
+    @DTO
+    public struct Body {
 
         // MARK: - Source Type
 
         /// Enumeration of supported text sources
-        public enum Source: String, CoSendable {
+        @DTO
+        public enum Source: String {
             case epub
             case pdf
             case web
@@ -163,42 +138,18 @@ extension EP.Markdown.CreateMarkdown {
 
         /// Whether the content is in English
         public var isEnglish: Bool
-
-        // MARK: Initialization
-
-        /// Creates a new request body
-        /// - Parameters:
-        ///   - texts: Array of text content to process
-        ///   - source: Source type of the content
-        ///   - isEnglish: Language indicator for processing
-        public init(
-            texts: [String],
-            source: Source,
-            isEnglish: Bool,
-        ) {
-            self.texts = texts
-            self.source = source
-            self.isEnglish = isEnglish
-        }
     }
 
     // MARK: - Response Types
 
     /// Response chunk for streaming markdown content
-    public struct ResponseChunk: CoSendable {
+    @DTO
+    public struct Chunk {
 
         // MARK: Properties
 
         /// Generated markdown content chunk
         public var markdown: String
-
-        // MARK: Initialization
-
-        /// Creates a new response chunk
-        /// - Parameter markdown: The markdown content chunk
-        public init(markdown: String) {
-            self.markdown = markdown
-        }
     }
 }
 
@@ -209,38 +160,24 @@ extension EP.Markdown.CreateMarkdownV2 {
     // MARK: - Request Types
 
     /// Request body for markdown creation (V2)
-    public struct RequestBody: CoSendable {
+    @DTO
+    public struct Body {
 
         // MARK: Properties
 
         /// Array of text content to convert
         public var texts: [String]
-
-        // MARK: Initialization
-
-        /// Creates a new request body (V2)
-        /// - Parameter texts: Array of text content to process
-        public init(texts: [String]) {
-            self.texts = texts
-        }
     }
 
     // MARK: - Response Types
 
     /// Response containing complete markdown content
-    public struct ResponseContent: CoSendable {
+    @DTO
+    public struct Content {
 
         // MARK: Properties
 
         /// Generated markdown content
         public var markdown: String
-
-        // MARK: Initialization
-
-        /// Creates a new response content
-        /// - Parameter markdown: The complete markdown content
-        public init(markdown: String) {
-            self.markdown = markdown
-        }
     }
 }
