@@ -140,9 +140,25 @@ extension APIClientKind {
                 throw APIClientError.invalidResponse
             }
 
-            guard (200...299).contains(httpResponse.statusCode) else {
+            let statusCode = httpResponse.statusCode
+
+            guard (200...299).contains(statusCode) else {
                 let message = String(data: data, encoding: .utf8) ?? "Unknown error"
-                throw APIClientError.serverError(statusCode: httpResponse.statusCode, message: message)
+
+                // Attempt to handle the error with the error handler
+                let handled = await handleServerResponseError(
+                    statusCode: statusCode,
+                    message: message,
+                    response: httpResponse
+                )
+
+                if handled {
+                    // If handled, throw a specific error to indicate it was processed
+                    throw APIClientError.handledByErrorHandler
+                } else {
+                    // If not handled, throw a server error with the status code and message
+                    throw APIClientError.serverError(statusCode: statusCode, message: message)
+                }
             }
         } catch is CancellationError {
             throw .cancelled
@@ -160,6 +176,7 @@ extension APIClientKind {
             let container = try JSONDecoder().decode(EndpointResponseContainer<T>.self, from: data)
             return container.result
         } catch {
+            assertionFailure("Failed to decode response: \(error)")
             throw APIClientError.decodingError(message: ErrorKit.errorChainDescription(for: error))
         }
     }

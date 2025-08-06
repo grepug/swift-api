@@ -14,6 +14,7 @@ public enum APIClientError: Throwable, Catching {
     case invalidAccessToken
     case urlSessionError(URLSessionError)
     case cancelled
+    case handledByErrorHandler
     case caught(_ error: Error)
 
     public var userFriendlyMessage: String {
@@ -30,6 +31,8 @@ public enum APIClientError: Throwable, Catching {
             "\(error.userFriendlyMessage)"
         case .cancelled:
             "The request was cancelled."
+        case .handledByErrorHandler:
+            ""
         case .caught(let error):
             ErrorKit.userFriendlyMessage(for: error)
         }

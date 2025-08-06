@@ -81,4 +81,10 @@ public protocol APIClientKind {
 
     /// The base URL for all API requests
     var baseURL: URL { get }
+
+    func handleServerResponseError(
+        statusCode: Int,
+        message: String,
+        response: URLResponse
+    ) async -> Bool
 }
