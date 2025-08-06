@@ -32,6 +32,7 @@ extension EP.System {
         public struct Content {
             public var forceUpdate: Bool
             public var appReviewMode: Bool
+            public var isAppReviewing: Bool
         }
     }
 }
