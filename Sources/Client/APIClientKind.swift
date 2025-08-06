@@ -30,8 +30,7 @@ import SwiftAPICore
 ///
 /// This protocol establishes the contract for making HTTP requests to API endpoints,
 /// handling both standard data requests and streaming responses with proper error handling.
-@MainActor
-public protocol APIClientKind {
+public protocol APIClientKind: Sendable {
 
     // MARK: - Required Methods
 
