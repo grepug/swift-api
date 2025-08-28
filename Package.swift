@@ -36,6 +36,7 @@ let package = Package(
         .package(url: "https://github.com/grepug/concurrency-utils.git", branch: "main"),
         .package(url: "https://github.com/grepug/context-shared-models.git", branch: "main"),
         .package(url: "https://github.com/swiftlang/swift-syntax", "600.0.0"..<"602.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.9.4"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -54,6 +55,7 @@ let package = Package(
                 "SwiftAPICore",
                 .product(name: "ErrorKit", package: "ErrorKit"),
                 .product(name: "ConcurrencyUtils", package: "concurrency-utils"),
+                .product(name: "Dependencies", package: "swift-dependencies"),
             ],
             path: "Sources/Client"
         ),
