@@ -41,6 +41,8 @@ public protocol APIClientKind: Sendable {
     /// - Throws: APIClientError for various failure scenarios
     func data<E: Endpoint>(on endpoint: E) async throws(APIClientError<E.Error>) -> E.Content
 
+    // func data<E: Endpoint>(on endpoint: E, errorHandler: (E.Error) -> Void) async throws(APIClientError<E.Error>) -> E.Content
+
     /// Creates a streaming connection to the specified endpoint
     ///
     /// - Parameter endpoint: The endpoint to stream from
