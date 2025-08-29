@@ -17,7 +17,7 @@ public struct MockAPIClient<EP: Endpoint>: APIClientKind {
         self.mockStream = mockStream
     }
 
-    public func data<E>(on endpoint: E) async throws(APIClientError) -> E.Content where E: Endpoint {
+    public func data<E>(on endpoint: E) async throws(APIClientError<EmptyError>) -> E.Content where E: Endpoint {
         if let data = mockData!() as? E.Content {
             return data
         } else {

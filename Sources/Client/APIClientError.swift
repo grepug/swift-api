@@ -1,4 +1,5 @@
 import ErrorKit
+import SwiftAPICore
 
 // MARK: - APIClientError
 
@@ -7,7 +8,7 @@ import ErrorKit
 /// This enum represents all the different types of errors that can occur
 /// during API client operations, providing detailed error information
 /// and user-friendly messages for each case.
-public enum APIClientError: Throwable, Catching {
+public enum APIClientError<EndpointError: CodableError>: Throwable, Catching {
     case invalidResponse
     case serverError(statusCode: Int, message: String)
     case decodingError(message: String)
@@ -15,6 +16,7 @@ public enum APIClientError: Throwable, Catching {
     case urlSessionError(URLSessionError)
     case cancelled
     case handledByErrorHandler
+    case endpointError(EndpointError)
     case caught(_ error: Error)
 
     public var userFriendlyMessage: String {
@@ -33,6 +35,8 @@ public enum APIClientError: Throwable, Catching {
             "The request was cancelled."
         case .handledByErrorHandler:
             ""
+        case .endpointError(let error):
+            error.localizedDescription
         case .caught(let error):
             ErrorKit.userFriendlyMessage(for: error)
         }

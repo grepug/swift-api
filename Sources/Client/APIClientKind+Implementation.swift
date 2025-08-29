@@ -54,12 +54,13 @@ extension APIClientKind {
     /// - Parameter endpoint: The endpoint to make the request to
     /// - Returns: The decoded response content
     /// - Throws: APIClientError for various failure scenarios
-    public func data<E>(on endpoint: E) async throws(APIClientError) -> E.Content where E: Endpoint {
+    public func data<E>(on endpoint: E) async throws(APIClientError<E.Error>) -> E.Content where E: Endpoint {
         try await data(
             E.path,
             method: E.method,
             query: endpoint.query,
             body: endpoint.body,
+            errorType: E.Error.self,
             decodingAs: E.Content.self,
         )
     }
@@ -90,7 +91,7 @@ extension APIClientKind {
                 let container = try JSONDecoder().decode(EndpointResponseChunkContainer<E.Chunk>.self, from: data)
 
                 guard container.errorCode == nil else {
-                    continuation.finish(throwing: APIClientError.serverError(statusCode: container.errorCode!, message: ""))
+                    continuation.finish(throwing: APIClientError<E.Error>.serverError(statusCode: container.errorCode!, message: ""))
                     return
                 }
 
@@ -114,13 +115,16 @@ extension APIClientKind {
     ///   - type: The type to decode the response as
     /// - Returns: The decoded response of the specified type
     /// - Throws: APIClientError for various failure scenarios
-    public func data<T, Body, Query>(
+    public func data<T, Body, Query, Error>(
         _ path: String,
         method: EndpointMethod,
         query: Query,
         body: Body,
+        errorType: Error.Type,
         decodingAs type: T.Type,
-    ) async throws(APIClientError) -> T where T: Codable, Body: Encodable, Query: Encodable {
+    ) async throws(APIClientError<Error>) -> T where T: Codable, Body: Encodable, Query: Encodable, Error: CodableError {
+        typealias ClientError = APIClientError<Error>
+
         let data: Data
 
         do {
@@ -137,14 +141,14 @@ extension APIClientKind {
             data = _data
 
             guard let httpResponse = response as? HTTPURLResponse else {
-                throw APIClientError.invalidResponse
+                throw ClientError.invalidResponse
             }
 
             let statusCode = httpResponse.statusCode
 
             guard (200...299).contains(statusCode) else {
                 let message = String(data: data, encoding: .utf8) ?? "Unknown error"
-
+                
                 // Attempt to handle the error with the error handler
                 let handled = await handleServerResponseError(
                     statusCode: statusCode,
@@ -154,15 +158,17 @@ extension APIClientKind {
 
                 if handled {
                     // If handled, throw a specific error to indicate it was processed
-                    throw APIClientError.handledByErrorHandler
+                    throw ClientError.handledByErrorHandler
+                } else if let decodedError = try? JSONDecoder().decode(Error.self, from: data) {
+                    throw ClientError.endpointError(decodedError)
                 } else {
                     // If not handled, throw a server error with the status code and message
-                    throw APIClientError.serverError(statusCode: statusCode, message: message)
+                    throw ClientError.serverError(statusCode: statusCode, message: message)
                 }
             }
         } catch is CancellationError {
             throw .cancelled
-        } catch let error as APIClientError {
+        } catch let error as ClientError {
             throw error
         } catch {
             if let error = error as? URLSessionError {
@@ -177,7 +183,7 @@ extension APIClientKind {
             return container.result
         } catch {
             assertionFailure("Failed to decode response: \(error)")
-            throw APIClientError.decodingError(message: ErrorKit.errorChainDescription(for: error))
+            throw ClientError.decodingError(message: ErrorKit.errorChainDescription(for: error))
         }
     }
 

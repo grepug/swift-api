@@ -27,11 +27,16 @@ public struct EmptyCodable: CoSendable {
     public init() {}
 }
 
+public protocol CodableError: Error, CoSendable {}
+
+public struct EmptyError: CodableError {}
+
 public protocol Endpoint: Sendable {
     associatedtype Body: CoSendable = EmptyCodable
     associatedtype Query: CoSendable = EmptyCodable
     associatedtype Chunk: CoSendable = EmptyCodable
     associatedtype Content: CoSendable = EmptyCodable
+    associatedtype Error: CodableError = EmptyError
 
     static var path: String { get }
     static var method: EndpointMethod { get }

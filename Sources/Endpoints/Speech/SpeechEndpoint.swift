@@ -1,4 +1,5 @@
 import ContextSharedModels
+import ErrorKit
 import Foundation
 import SwiftAPICore
 
@@ -13,7 +14,7 @@ public protocol SpeechEndpointGroupProtocol: EndpointGroupProtocol {
     typealias E3 = EP.Speech.AddPlayLog
 
     func fetchPlayItems(_ context: Context<E1>) async throws -> E1.Content
-    func generatePlayItemAsset(_ context: Context<E2>) async throws -> E2.Content
+    func generatePlayItemAsset(_ context: Context<E2>) async throws(E2.Error) -> E2.Content
     func addPlayLog(_ context: Context<E3>) async throws -> E3.Content
 }
 
@@ -62,6 +63,12 @@ extension EP.Speech {
         @DTO
         public struct Content {
             public let item: ContextModel.PlayItem
+        }
+
+        public enum Error: CodableError {
+            case usageLimitExceeded(current: Int, limit: Int)
+            case noActiveSubscription
+            case other(message: String)
         }
     }
 

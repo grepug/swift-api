@@ -34,7 +34,7 @@ extension RouteKind {
     public func block<E>(
         _ endpoint: E.Type,
         _ handler: @escaping @Sendable (_ context: RequestContext<Request, E.Query, E.Body>) async throws -> E.Content
-    ) -> Self where E: Endpoint, E.Chunk == EmptyCodable {
+    ) -> Self where E: Endpoint, E.Chunk == EmptyCodable, E.Error == EmptyError {
         var me = self
         me.path = E.path
         me.method = E.method
@@ -51,6 +51,38 @@ extension RouteKind {
 
             let result = try await req.injectedDependency {
                 try await handler(context)
+            }
+
+            return Response.fromCodable(result)
+        }
+
+        return me
+    }
+
+    public func block<E>(
+        _ endpoint: E.Type,
+        _ handler: @escaping @Sendable (_ context: RequestContext<Request, E.Query, E.Body>) async throws(E.Error) -> E.Content
+    ) -> Self where E: Endpoint, E.Chunk == EmptyCodable {
+        var me = self
+        me.path = E.path
+        me.method = E.method
+
+        me.handler = { req in
+            let query = E.Query.self is EmptyCodable.Type ? EmptyCodable() as! E.Query : try req.decodedRequestQuery(E.Query.self)
+            let body = E.Body.self is EmptyCodable.Type ? EmptyCodable() as! E.Body : try req.decodedRequestBody(E.Body.self)
+
+            let context = RequestContext(
+                request: req,
+                query: query,
+                body: body,
+            )
+
+            let result = try await req.injectedDependency {
+                do {
+                    return try await handler(context)
+                } catch let error as E.Error {
+                    throw Response.mapError(error)
+                }
             }
 
             return Response.fromCodable(result)
@@ -100,6 +132,7 @@ public protocol RouteRequestKind: Sendable {
 public protocol RouteResponseKind {
     static func fromCodable<T>(_ codable: T) -> Self where T: CoSendable
     static func fromStream<S: AsyncSequence>(_ stream: S) -> Self where S.Element: CoSendable
+    static func mapError<T>(_ payload: T) -> Error where T: Codable, T: Sendable
 
     init()
 }

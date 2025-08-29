@@ -39,7 +39,7 @@ public protocol APIClientKind: Sendable {
     /// - Parameter endpoint: The endpoint to make the request to
     /// - Returns: The decoded response content
     /// - Throws: APIClientError for various failure scenarios
-    func data<E: Endpoint>(on endpoint: E) async throws(APIClientError) -> E.Content
+    func data<E: Endpoint>(on endpoint: E) async throws(APIClientError<E.Error>) -> E.Content
 
     /// Creates a streaming connection to the specified endpoint
     ///
@@ -57,13 +57,14 @@ public protocol APIClientKind: Sendable {
     ///   - type: The type to decode the response as
     /// - Returns: The decoded response of the specified type
     /// - Throws: APIClientError for various failure scenarios
-    func data<T, Body, Query>(
+    func data<T, Body, Query, Error>(
         _ path: String,
         method: EndpointMethod,
         query: Query,
         body: Body,
+        errorType: Error.Type,
         decodingAs type: T.Type,
-    ) async throws(APIClientError) -> T where T: Codable, Body: Encodable, Query: Encodable
+    ) async throws(APIClientError<Error>) -> T where T: Codable, Body: Encodable, Query: Encodable, Error: CodableError
 
     /// Provides the access token for authentication
     ///
