@@ -1,37 +1,24 @@
 import Foundation
 import SwiftAPICore
 
-public struct MockAPIClient<EP: Endpoint>: APIClientKind {
-    var mockData: (@Sendable () -> EP.Content)?
-    var mockStream: (@Sendable () -> AsyncThrowingStream<EP.Content, any Error>)?
-
-    public init(
-        mockData: @escaping @Sendable () -> EP.Content,
-    ) {
-        self.mockData = mockData
+public struct MockAPIClient<K: Sendable & Codable>: APIClientKind {
+    
+    var mockedData: K
+    
+    public init(mockedData: K) {
+        self.mockedData = mockedData
     }
-
-    public init(
-        mockStream: @escaping @Sendable () -> AsyncThrowingStream<EP.Content, any Error>
-    ) {
-        self.mockStream = mockStream
-    }
-
-    public func data<E>(on endpoint: E) async throws(APIClientError<EmptyError>) -> E.Content where E: Endpoint {
-        if let data = mockData!() as? E.Content {
-            return data
-        } else {
-            print("MockAPIClient: mockData type mismatch or not set")
-            fatalError("Mock data not set or type mismatch")
-        }
+    
+    public func data<T, Body, Query, Error>(_ path: String, method: EndpointMethod, query: Query, body: Body, errorType: Error.Type, decodingAs type: T.Type) async throws(APIClientError<Error>) -> T where T : Decodable, T : Encodable, Body : Encodable, Query : Encodable, Error : CodableError {
+        return mockedData as! T
     }
 
     public func accessToken() -> String {
         fatalError()
     }
-
+    
     public func makeStream(request: URLRequest) -> AsyncThrowingStream<String, any Error> {
-        mockStream!() as! AsyncThrowingStream<String, any Error>
+        fatalError()
     }
 
     public var baseURL: URL {

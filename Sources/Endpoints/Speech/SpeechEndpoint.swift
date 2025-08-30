@@ -12,10 +12,12 @@ public protocol SpeechEndpointGroupProtocol: EndpointGroupProtocol {
     typealias E1 = EP.Speech.FetchPlayItems
     typealias E2 = EP.Speech.GeneratePlayItemAsset
     typealias E3 = EP.Speech.AddPlayLog
+    typealias E4 = EP.Speech.GetUsage
 
     func fetchPlayItems(_ context: Context<E1>) async throws -> E1.Content
     func generatePlayItemAsset(_ context: Context<E2>) async throws(E2.Error) -> E2.Content
     func addPlayLog(_ context: Context<E3>) async throws -> E3.Content
+    func getUsage(_ context: Context<E4>) async throws(E4.Error) -> E4.Content
 }
 
 extension SpeechEndpointGroupProtocol {
@@ -24,6 +26,7 @@ extension SpeechEndpointGroupProtocol {
         Route().block(E1.self, fetchPlayItems)
         Route().block(E2.self, generatePlayItemAsset)
         Route().block(E3.self, addPlayLog)
+        Route().block(E4.self, getUsage)
     }
 }
 
@@ -47,6 +50,7 @@ extension EP.Speech {
         @DTO
         public struct Content {
             public let items: [ContextModel.PlayItem]
+            public let playedCounts: [Int]
         }
     }
 
@@ -79,6 +83,21 @@ extension EP.Speech {
         @DTO
         public struct Body {
             public let playItemId: UUID
+        }
+    }
+
+    @Endpoint("usage", .GET)
+    public struct GetUsage {
+        @DTO
+        public struct Content {
+            public let usage: Int
+            public let limit: Int
+            public let nextReset: Date
+        }
+
+        public enum Error: CodableError {
+            case noActiveSubscription
+            case other(message: String)
         }
     }
 }

@@ -39,7 +39,7 @@ public protocol APIClientKind: Sendable {
     /// - Parameter endpoint: The endpoint to make the request to
     /// - Returns: The decoded response content
     /// - Throws: APIClientError for various failure scenarios
-    func data<E: Endpoint>(on endpoint: E) async throws(APIClientError<E.Error>) -> E.Content
+    // func data<E: Endpoint>(on endpoint: E) async throws(APIClientError<E.Error>) -> E.Content
 
     // func data<E: Endpoint>(on endpoint: E, errorHandler: (E.Error) -> Void) async throws(APIClientError<E.Error>) -> E.Content
 
@@ -47,7 +47,7 @@ public protocol APIClientKind: Sendable {
     ///
     /// - Parameter endpoint: The endpoint to stream from
     /// - Returns: An async throwing stream of response chunks
-    func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.Chunk, Error> where E: Endpoint
+    // func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.Chunk, Error> where E: Endpoint
 
     /// Performs a generic data request with custom parameters
     ///
