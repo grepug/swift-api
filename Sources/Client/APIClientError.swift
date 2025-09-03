@@ -19,6 +19,20 @@ public enum APIClientError<EndpointError: CodableError>: Throwable, Catching {
     case endpointError(EndpointError)
     case caught(_ error: Error)
 
+    public var isCancelled: Bool {
+        if case .cancelled = self {
+            return true
+        }
+
+        if case .urlSessionError(let urlSessionError) = self,
+            case .cancelled = urlSessionError
+        {
+            return true
+        }
+
+        return false
+    }
+
     public var userFriendlyMessage: String {
         switch self {
         case .invalidResponse:

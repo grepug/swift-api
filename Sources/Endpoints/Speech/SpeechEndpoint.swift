@@ -13,11 +13,13 @@ public protocol SpeechEndpointGroupProtocol: EndpointGroupProtocol {
     typealias E2 = EP.Speech.GeneratePlayItemAsset
     typealias E3 = EP.Speech.AddPlayLog
     typealias E4 = EP.Speech.GetUsage
+    typealias E5 = EP.Speech.GetDemo
 
     func fetchPlayItems(_ context: Context<E1>) async throws -> E1.Content
     func generatePlayItemAsset(_ context: Context<E2>) async throws(E2.Error) -> E2.Content
     func addPlayLog(_ context: Context<E3>) async throws -> E3.Content
     func getUsage(_ context: Context<E4>) async throws(E4.Error) -> E4.Content
+    func getDemo(_ context: Context<E5>) async throws -> E5.Content
 }
 
 extension SpeechEndpointGroupProtocol {
@@ -27,6 +29,7 @@ extension SpeechEndpointGroupProtocol {
         Route().block(E2.self, generatePlayItemAsset)
         Route().block(E3.self, addPlayLog)
         Route().block(E4.self, getUsage)
+        Route().block(E5.self, getDemo)
     }
 }
 
@@ -51,6 +54,7 @@ extension EP.Speech {
         public struct Content {
             public let items: [ContextModel.PlayItem]
             public let playedCounts: [Int]
+            public let isEligible: Bool
         }
     }
 
@@ -88,6 +92,7 @@ extension EP.Speech {
 
     @Endpoint("usage", .GET)
     public struct GetUsage {
+
         @DTO
         public struct Content {
             public let usage: Int
@@ -96,8 +101,22 @@ extension EP.Speech {
         }
 
         public enum Error: CodableError {
-            case noActiveSubscription
+            case noSubscription
             case other(message: String)
         }
     }
+
+    @Endpoint("demo-data", .GET)
+    public struct GetDemo {
+        @DTO
+        public struct Content {
+            public let collectionItem: ContextModel.Collection
+            public let contextItems: [ContextModel.Context]
+            public let playItems: [ContextModel.PlayItem]
+
+            /// Mapping of play item IDs to their audio URLs
+            public let audioURLs: [UUID: URL]
+        }
+    }
+
 }
