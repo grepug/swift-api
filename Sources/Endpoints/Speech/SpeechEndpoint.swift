@@ -113,9 +113,7 @@ extension EP.Speech {
             public let collectionItem: ContextModel.Collection
             public let contextItems: [ContextModel.Context]
             public let playItems: [ContextModel.PlayItem]
-
-            /// Mapping of play item IDs to their audio URLs
-            public let audioURLs: [UUID: URL]
+            public let appConfigPaths: [UUID: String]
         }
     }
 
