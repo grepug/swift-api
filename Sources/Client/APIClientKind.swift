@@ -71,7 +71,7 @@ public protocol APIClientKind: Sendable {
     /// Provides the access token for authentication
     ///
     /// - Returns: The current access token string
-    func accessToken() -> String
+    func accessToken() async -> String
 
     /// Creates a streaming connection for the given request
     ///
