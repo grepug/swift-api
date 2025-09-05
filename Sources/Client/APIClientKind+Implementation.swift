@@ -29,7 +29,7 @@ extension APIClientKind {
         method: EndpointMethod,
         query: [URLQueryItem],
         body: Data,
-    ) -> URLRequest {
+    ) async -> URLRequest {
         let pathComponent = path.split(separator: "/", omittingEmptySubsequences: true)
 
         var url = baseURL
@@ -42,8 +42,10 @@ extension APIClientKind {
 
         var request = URLRequest(url: url)
 
+        let accessToken = await accessToken()
+
         request.httpMethod = method.rawValue
-        request.addValue("Bearer \(accessToken())", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
         if method.hasBody {
             request.httpBody = body
@@ -144,10 +146,10 @@ extension APIClientKind {
     /// - Parameter endpoint: The endpoint to stream from
     /// - Returns: An async throwing stream that yields `E.Chunk` objects
     /// - Throws: Various errors including network issues, decoding failures, or server errors
-    public func stream<E>(on endpoint: E) -> AsyncThrowingStream<E.Chunk, Error> where E: Endpoint {
+    public func stream<E>(on endpoint: E) async -> AsyncThrowingStream<E.Chunk, Error> where E: Endpoint {
         let body = try! JSONEncoder().encode(endpoint.body)
         let query = makeQuery(endpoint.query)
-        let request = urlRequest(
+        let request = await urlRequest(
             path: E.path,
             method: E.method,
             query: query,
@@ -233,7 +235,7 @@ extension APIClientKind {
         do {
             let body = try! JSONEncoder().encode(body)
             let query = makeQuery(query)
-            let request = urlRequest(
+            let request = await urlRequest(
                 path: path,
                 method: method,
                 query: query,

@@ -116,6 +116,10 @@ struct MockResponse: RouteResponseKind, @unchecked Sendable {
         return MockResponse(data: stream)
     }
 
+    static func mapError<T>(_ payload: T) -> any Error where T: Decodable, T: Encodable, T: Sendable {
+        fatalError()
+    }
+
     init() {
         self.data = nil
     }
