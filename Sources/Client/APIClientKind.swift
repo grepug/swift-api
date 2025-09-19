@@ -87,6 +87,7 @@ public protocol APIClientKind: Sendable {
     func handleServerResponseError(
         statusCode: Int,
         message: String,
-        response: URLResponse
-    ) async -> Bool
+        response: URLResponse,
+        retried: Bool
+    ) async -> APIClientHandlerErrorResult
 }

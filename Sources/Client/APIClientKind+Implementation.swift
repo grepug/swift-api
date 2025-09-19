@@ -2,6 +2,10 @@ import ErrorKit
 import Foundation
 import SwiftAPICore
 
+public enum APIClientHandlerErrorResult {
+    case handled, notHandled, retryOnce
+}
+
 // MARK: - APIClientKind Default Implementation
 
 /// Default implementation of APIClientKind providing common functionality
@@ -226,18 +230,37 @@ extension APIClientKind {
         errorType: Error.Type,
         decodingAs type: T.Type,
     ) async throws(APIClientError<Error>) -> T where T: Codable, Body: Encodable, Query: Encodable, Error: CodableError {
+        try await _data(
+            path,
+            method: method,
+            query: query,
+            body: body,
+            errorType: errorType,
+            decodingAs: type
+        )
+    }
+
+    private func _data<T, Body, Query, Error>(
+        _ path: String,
+        method: EndpointMethod,
+        query: Query,
+        body: Body,
+        errorType: Error.Type,
+        decodingAs type: T.Type,
+        retry: Bool = false
+    ) async throws(APIClientError<Error>) -> T where T: Codable, Body: Encodable, Query: Encodable, Error: CodableError {
         typealias ClientError = APIClientError<Error>
 
         let data: Data
 
         do {
-            let body = try! JSONEncoder().encode(body)
-            let query = makeQuery(query)
+            let encodedBody = try! JSONEncoder().encode(body)
+            let queryItems = makeQuery(query)
             let request = urlRequest(
                 path: path,
                 method: method,
-                query: query,
-                body: body,
+                query: queryItems,
+                body: encodedBody,
             )
             let (_data, response) = try await URLSession.shared.throwableData(for: request)
 
@@ -252,20 +275,39 @@ extension APIClientKind {
             guard (200...299).contains(statusCode) else {
                 let message = String(data: data, encoding: .utf8) ?? "Unknown error"
 
-                // Attempt to handle the error with the error handler
-                let handled = await handleServerResponseError(
+                // Always call the error handler to let it decide how to handle the error
+                // The 'retried' parameter tells the handler if this is already a retry attempt
+                let result = await handleServerResponseError(
                     statusCode: statusCode,
                     message: message,
-                    response: httpResponse
+                    response: httpResponse,
+                    retried: retry
                 )
 
-                if handled {
+                switch result {
+                case .handled:
                     // If handled, throw a specific error to indicate it was processed
                     throw ClientError.handledByErrorHandler
-                } else if let decodedError = try? JSONDecoder().decode(Error.self, from: data) {
+                case .notHandled:
+                    // Continue to normal error handling below
+                    break
+                case .retryOnce:
+                    // Retry the request (the error handler can decide to retry even on retry attempts)
+                    return try await self._data(
+                        path,
+                        method: method,
+                        query: query,
+                        body: body,
+                        errorType: Error.self,
+                        decodingAs: T.self,
+                        retry: true
+                    )
+                }
+
+                // Normal error handling (used for .notHandled)
+                if let decodedError = try? JSONDecoder().decode(Error.self, from: data) {
                     throw ClientError.endpointError(decodedError)
                 } else {
-                    // If not handled, throw a server error with the status code and message
                     throw ClientError.serverError(statusCode: statusCode, message: message)
                 }
             }
