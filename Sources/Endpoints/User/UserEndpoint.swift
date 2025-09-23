@@ -35,6 +35,7 @@ extension EP.User {
         public var body: Body
 
         @DTO public struct Body {
+            public var userRegistrationDate: Date
             public var deviceId: UUID
             public var userName: String?
             public var modelName: String?
