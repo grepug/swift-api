@@ -45,6 +45,7 @@ extension EP.User {
             public var appBuild: String?
             public var osVersion: String?
             public var osName: String?
+            public var apnsDeviceToken: String?
         }
     }
 }
