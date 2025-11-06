@@ -49,7 +49,7 @@ extension EP.User {
             public var osVersion: String?
             public var osName: String?
             public var apnsDeviceToken: String?
-            public var timezoneOffsetToUTC: Int?  // in minutes
+            public var timeZoneOffsetToUTCInMinutes: Int?
         }
     }
 
