@@ -16,9 +16,11 @@ public enum EP {
 public protocol UserEndpointGroupProtocol: EndpointGroupProtocol {
     typealias E1 = EP.User.FetchFreeFeature
     typealias E2 = EP.User.UpsertUserInfo
+    typealias E3 = EP.User.UpdateAPNSDeviceToken
 
     func fetchUserRequestFreeFeature(context: Context<E1>) async throws -> E1.Content
     func upsertUserInfo(context: Context<E2>) async throws -> E2.Content
+    func updateAPNSDeviceToken(context: Context<E3>) async throws -> E3.Content
 }
 
 extension UserEndpointGroupProtocol {
@@ -26,6 +28,7 @@ extension UserEndpointGroupProtocol {
     public var routes: Routes {
         Route().block(E1.self, fetchUserRequestFreeFeature)
         Route().block(E2.self, upsertUserInfo)
+        Route().block(E3.self, updateAPNSDeviceToken)
     }
 }
 
@@ -46,6 +49,16 @@ extension EP.User {
             public var osVersion: String?
             public var osName: String?
             public var apnsDeviceToken: String?
+        }
+    }
+
+    @Endpoint("update-apns-device-token", .POST)
+    public struct UpdateAPNSDeviceToken {
+        public var body: Body
+
+        @DTO public struct Body {
+            public var deviceId: UUID
+            public var apnsDeviceToken: String
         }
     }
 }
