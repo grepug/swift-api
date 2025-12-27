@@ -137,7 +137,7 @@
     public protocol EndpointGroupController: RouteCollection, EndpointGroupProtocol where Self.Route == APIRoute {}
 
     extension EndpointGroupController {
-        func boot(routes: any RoutesBuilder) throws {
+        public func boot(routes: any RoutesBuilder) throws {
             for route in self.finalRoutes {
                 guard let route = route as? APIRoute else {
                     continue
