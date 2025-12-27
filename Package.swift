@@ -31,6 +31,9 @@ let package = Package(
                 "SwiftAPICore"
             ]),
     ],
+    traits: [
+        .trait(name: "ContextEndpoints")
+    ],
     dependencies: [
         .package(url: "https://github.com/FlineDev/ErrorKit.git", from: "1.0.0"),
         .package(url: "https://github.com/grepug/concurrency-utils.git", branch: "main"),
@@ -65,7 +68,11 @@ let package = Package(
                 "SwiftAPICore",
                 "Macros",
                 .product(name: "ErrorKit", package: "ErrorKit"),
-                .product(name: "ContextSharedModels", package: "context-shared-models"),
+                .product(
+                    name: "ContextSharedModels",
+                    package: "context-shared-models",
+                    condition: .when(traits: ["ContextEndpoints"])
+                ),
             ],
             path: "Sources/Endpoints"
         ),
