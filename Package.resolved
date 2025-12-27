@@ -1,5 +1,5 @@
 {
-  "originHash" : "3aa9b6b6cf117b1a6a7afa283efc9e185d4c948c61d008738978f8624db25867",
+  "originHash" : "f6b37c801a09a04ce48a5ae68ef2a0cbc0e6150daadffb61f73e3681c538f35f",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -17,15 +17,6 @@
       "state" : {
         "branch" : "main",
         "revision" : "76122b634f12dfc369c35108b4a27240f77d5281"
-      }
-    },
-    {
-      "identity" : "context-shared-models",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/grepug/context-shared-models.git",
-      "state" : {
-        "branch" : "main",
-        "revision" : "27ee97b3dc85b37c3cf02d2dfdd5c24faa69d357"
       }
     },
     {
