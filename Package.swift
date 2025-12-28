@@ -32,8 +32,7 @@ let package = Package(
             ]),
     ],
     traits: [
-        .trait(name: "ContextEndpoints"),
-        .trait(name: "Server"),
+        .trait(name: "ContextEndpoints")
     ],
     dependencies: [
         .package(url: "https://github.com/FlineDev/ErrorKit.git", from: "1.0.0"),
@@ -41,7 +40,6 @@ let package = Package(
         .package(url: "https://github.com/grepug/context-shared-models.git", branch: "main"),
         .package(url: "https://github.com/swiftlang/swift-syntax", "600.0.0"..<"602.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.9.4"),
-        .package(url: "git@github.com:grepug/vapor-utils.git", branch: "main"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -51,7 +49,6 @@ let package = Package(
             dependencies: [
                 .product(name: "ErrorKit", package: "ErrorKit"),
                 "Macros",
-                .product(name: "VaporUtils", package: "vapor-utils", condition: .when(traits: ["Server"])),
             ],
             path: "Sources/Core"
         ),
